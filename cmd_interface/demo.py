@@ -41,7 +41,7 @@ Resources:
 '''
 
 # Video files
-video_path = "full_match.mp4" 
+video_path = "cmd_interface/source_videos/full_match.mp4" 
 
 # opencv video attribute constants
 VIDEO_CAPTURE_WIDTH = 3
@@ -469,7 +469,7 @@ def get_serve_attempt_timestamps(low_points, high_points):
 					serve_attempts.append(low_point[0])
 	return serve_attempts
 
-def convert_list_to_timestamps(list_of_values):
+def convert_list_to_timestamps(list_of_values): # returns a list "points_of_interest"
 	# maybe use this if it takes too long to use 'every' frame. But it probably shouldn't take that long though.
 	# scale the values to the appropriate time frame, given the fps of the video.
 	# note: how do you get the fps of a video file? from ffmpeg? or OpenCV?

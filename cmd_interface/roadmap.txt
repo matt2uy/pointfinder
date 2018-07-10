@@ -1,0 +1,73 @@
+Roadmap:
+
+11/26/17
+- Attempt to compare scoreboard data with historical instances (at t-1, 2, 3, 4, 5)
+- if that works -> spit out point timestamps -> clean up noisy timestamps -> edit.
+
+12/5/17 
+- Test with a full challenger match
+
+12/19/17
+- Try smooth ball tracking
+- if that works -> test on non-challenger matches
+
+12/26/17 
+- regardless of smooth ball tracking -> try it out.
+
+12/29/17
+- check this: https://video.stackexchange.com/questions/14802/can-i-use-ffmpeg-in-a-commercial-product
+- some more docs: https://www.ffmpeg.org/documentation.html
+- video editor...
+	- automatic cropping (using the tennis court lines)
+	- "easy" editing (cuts, remove clips, etc...)
+- then make it an online video editor?
+	- look at licensing, or diy
+	- like this? https://github.com/mifi/lossless-cut
+	- or this? https://github.com/casatt/html5-videoEditor
+
+A few "point finding" methods.
+How to determine when a point is finished:
+
+1. Use the "amount of motion"
+- before serve: the least?
+- point ends: 'deceleration'?
+
+2. net cord?
+- but players will interfere? 
+- model the tennis court?
+
+3. Sound
+- Does not work with the presence of a "crowd", because the "clapping" interfered with the sound of the ball-racquet interactions.
+
+4. Ball tracking
+a) check for 'smooth path'
+- if there is no smooth path for more than 2 seconds, 
+... then the point is finished?
+
+	- opencv houghcircles python
+	- kalman filter to predict movement
+	- trace path?
+	- how to judge if a path is 'smooth'?
+
+- background subtraction
+	- do a "long exposure" of x frames
+		- "add" up white pixels of the last x frames
+		- then display the resulting frame
+	- then look for a line of x width, with j allowable curve
+	https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
+
+b) (1/11/18)
+1. canny edge detection (there is reduced noise in edge images (Xie et. al))
+	(pg.29) https://www.collectionscanada.gc.ca/obj/s4/f2/dsk3/SSU/TC-SSU-08302006125935.pdf
+
+2. background subtraction
+
+3. look for moving objects
+	- if there is too much movement off court: only focus on court
+		- generate a model of the court?
+	- two players and the ball
+	- unique characteristics of the ball
+		- "crosses" the net
+		- certain size (in relation to the court dimensions)
+		- "circular", or "one blob"
+		- moves in a "smooth" fashion

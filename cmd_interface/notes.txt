@@ -1,0 +1,5 @@
+4/8/18 p_f notes
+https://archive.org/pop/
+- trying to run open source "popcorn editor"
+- "window is not defined" error
+	- maybe try replacing all "window" with "global"? or just removing the prefix altogether?

@@ -343,8 +343,8 @@ def capture_video():
 
 		 
 			# Press Q on keyboard to exit
-			if cv2.waitKey(1) & 0xFF == ord('q'):
-				break
+			'''if cv2.waitKey(1) & 0xFF == ord('q'):
+				break'''
 	 
 		# Break the loop
 		else: 

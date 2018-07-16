@@ -50,7 +50,7 @@ VIDEO_CAPTURE_FRAMES_PER_SECOND = 5
 
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 import sys
 
@@ -615,7 +615,7 @@ print(clean_up_noisy_timestamps([13.0, 18.633333333333333, 37.4, 56.833333333333
 
 ##### Diagnostic/Testing #####
 
-def plot_graph(list_of_plots):
+'''def plot_graph(list_of_plots):
 	""" Plot a graph using matplotlib, given a list_of_plots, which is a list
 	of list of y values to be plotted. Each x-value in each list is separated 
 	by a y-value of 1.	
@@ -627,7 +627,7 @@ def plot_graph(list_of_plots):
 	for plot in list_of_plots:
 		plt.plot(plot)
 	plt.show() 
-
+'''
 
 ############################## 
 

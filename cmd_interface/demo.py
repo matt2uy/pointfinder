@@ -51,11 +51,11 @@ VIDEO_CAPTURE_FRAMES_PER_SECOND = 5
 import cv2
 import numpy as np
 #import matplotlib.pyplot as plt
-from moviepy.editor import VideoFileClip, concatenate_videoclips
+#from moviepy.editor import VideoFileClip, concatenate_videoclips
 import sys
 
 ##### Video Editing #####
-
+'''
 def trim_video(start_time, end_time, new_file_path, source_file_path):
 	''' Trim video using ffmpeg.
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
@@ -101,7 +101,7 @@ def cut_video_in_points_of_interest(point_timestamps):
 		list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
 	# concatenate all trimmed video files.
 	merge_video(list_of_video_paths, "edited_video.mp4")
-
+'''
 
 '''# 8:50pm, 11/21/17
 - remove later... once cut_video_in_points_of_interest is finished

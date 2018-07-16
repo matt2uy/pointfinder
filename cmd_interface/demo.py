@@ -55,7 +55,7 @@ import numpy as np
 import sys
 
 ##### Video Editing #####
-'''
+"""
 def trim_video(start_time, end_time, new_file_path, source_file_path):
 	''' Trim video using ffmpeg.
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
@@ -101,7 +101,7 @@ def cut_video_in_points_of_interest(point_timestamps):
 		list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
 	# concatenate all trimmed video files.
 	merge_video(list_of_video_paths, "edited_video.mp4")
-'''
+"""
 
 '''# 8:50pm, 11/21/17
 - remove later... once cut_video_in_points_of_interest is finished
@@ -248,7 +248,7 @@ def capture_video():
 						
 						# compare t-2, 4, 6, 8 and 10
 						if frame[pixel_y][pixel_x] != previous_top_pixel_matrix[current_pixel_index]:#frame[pixel_y][pixel_x] > previous_top_pixel_matrix[current_pixel_index]+scoreboard_epsilon and frame[pixel_y][pixel_x] < previous_top_pixel_matrix[current_pixel_index]-scoreboard_epsilon:
-							pixel_differential = frame[pixel_y][pixel_x]-previous_top_pixel_matrix[current_pixel_index]
+							pixel_differential = int(frame[pixel_y][pixel_x])-int(previous_top_pixel_matrix[current_pixel_index])
 							if pixel_differential > 100:
 								changed_pixels += 1
 						current_pixel_index += 1

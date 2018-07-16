@@ -354,7 +354,7 @@ def capture_video():
 	cap.release()
 	 
 	# Closes all the frames
-	cv2.destroyAllWindows()
+	'''cv2.destroyAllWindows()'''
 
 	return historical_colour_value, historical_top_box_colour_value
 

@@ -14,9 +14,8 @@ app.config.from_object(__name__)
 
 import sys
 sys.path.append('cmd_interface')
-#import demo
-import numpy
-'''
+import demo
+
 # spit out "high potential" timestamps from a video
 def get_video_timestamps():
 	# maybe do a 'profile' to see how fast things are going?
@@ -35,7 +34,7 @@ def get_video_timestamps():
 	elapsed = round(end - start, 2)
 	print ("Video traversal took about", elapsed, "seconds.")
 	return timestamps
-'''
+
 
 #####                 #####
 
@@ -47,7 +46,7 @@ def translate():
 def add_entry(): 
 	##### get the expression from the user-inputted form
 
-	#timestamps = get_video_timestamps()
+	timestamps = get_video_timestamps()
 
 	return render_template('calculate.html', answer_text=timestamps)
 

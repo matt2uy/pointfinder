@@ -41,7 +41,7 @@ Resources:
 '''
 
 # Video files
-video_path = "cmd_interface/source_videos/full_match.mp4" 
+video_path = "cmd_interface/source_videos/full_match2.mp4" 
 
 # opencv video attribute constants
 VIDEO_CAPTURE_WIDTH = 3
@@ -60,7 +60,7 @@ def trim_video(start_time, end_time, new_file_path, source_file_path):
 	''' Trim video using ffmpeg.
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
 
-	Sample, where video_path = "full_match.mp4":
+	Sample, where video_path = "full_match2.mp4":
 	>>> trim_video(1000, 1100, "source_match.mp4", new_video_path)
 	'''	
 	video = VideoFileClip(source_file_path)

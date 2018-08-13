@@ -1,0 +1,218 @@
+<div id="message"></div>
+<input type="file" accept="video/*"/>
+<video id=UserVideo controls autoplay preload=auto oncanplay='InitControls(this)' ontimeupdate='UpdateTime(this)'></video>
+
+<script type="text/javascript">
+// keypresses...
+document.addEventListener('keyup', function (event) {
+    if (event.defaultPrevented) {
+        return;
+    }
+
+    var key = event.key || event.keyCode;
+
+    if (key === 'Escape' || key === 'Esc' || key === 27) {
+        alert('test');
+    }
+});
+
+
+// local video controls...  
+(function localFileVideoPlayer() {
+  'use strict'
+  var URL = window.URL || window.webkitURL
+  var displayMessage = function (message, isError) {
+    var element = document.querySelector('#message')
+    element.innerHTML = message
+    element.className = isError ? 'error' : 'info'
+  }
+  var playSelectedFile = function (event) {
+    var file = this.files[0]
+    var type = file.type
+    var videoNode = document.querySelector('video')
+    var canPlay = videoNode.canPlayType(type)
+    if (canPlay === '') canPlay = 'no'
+    var message = 'Can play type "' + type + '": ' + canPlay
+    var isError = canPlay === 'no'
+    displayMessage(message, isError)
+
+    if (isError) {
+      return
+    }
+
+    var fileURL = URL.createObjectURL(file)
+    videoNode.src = fileURL
+  }
+  var inputNode = document.querySelector('input')
+  inputNode.addEventListener('change', playSelectedFile, false)
+})()
+</script>
+
+
+
+
+
+
+
+<table class=VideoControls id=UserVideoControls>
+ <tr><td>
+<td>
+  <select id='Scenes' onchange='SelectScene(UserVideo,this)' size=8>
+	<option value='0:00' selected id=StartScene>0:00</option>
+	<option value='0:05' id=SecondScene>0:05</option>
+	<option value='0:10'>0:10</option>
+	<option value='0:20'>0:20</option>
+	<option value='0:30'>0:30</option>
+  </select>
+  <br><br
+>  <input type=button id=butStop value='&#x25FC;' onclick='RewindVideo(UserVideo);'>
+  <input type=button id=fstbwdbut value='&#x00AB;'           onclick='PlayPause(UserVideo,this,-2)'>
+  <input type=button id=butStepBwd value='&#x23B9;&#x2329;' onclick='FrameStep(UserVideo,this,-0.04)'>
+  <input type=button id=snailbut value='~'                  onclick='PlayPause(UserVideo,this,0.2)'>
+  <input type=button id=playbutton value='Play'           onclick='PlayPause(UserVideo,this,1)'>
+  <input type=button id=butStepFwd value='&#x232A;&#x23B8;' onclick='FrameStep(UserVideo,this,+0.04)'>
+  <input type=button id=fstfwdbut value='&#x00BB;'           onclick='PlayPause(UserVideo,this,2)'>
+  <br>
+  <table><tr>
+	<td><input type=range id=volume min=0 max=1 step=0.1 value=1 onchange='AdjustVolume(UserVideo,this.value)'>
+	<td><input type=button value='&#x266B;' onclick='Mute(UserVideo,this)'>
+	<td style="white-space: nowrap;">Volume: <span id=VolumeTxt> 100% </span>
+  </table>
+ <tr><td>
+  <input type=range id=videopos min=0 max=0 step=0.04 onchange='GotoPos(UserVideo,this.value)'>
+  <!--progress value=3 min=0 max=10 id=videopos-->
+</table>
+
+
+
+<script type='text/javascript'>
+
+
+
+
+
+
+
+
+function getTime(opt) {
+  minsec = opt.value.split(':');
+  return parseFloat( minsec[0]*60 + minsec[1] );
+}
+
+var curScene = StartScene;
+var curSceneStart = getTime(StartScene);
+var curSceneEnd = getTime(SecondScene);
+
+function CheckForScene(pos) {
+  if( curSceneStart <= pos && pos <= curSceneEnd ) return;
+  curSceneEnd = 0; nextscene = scene = null; 
+  for(sno in Scenes.childNodes) { cn = Scenes.childNodes[sno]; if(cn.tagName=="OPTION") {
+	scene = nextscene; nextscene = Scenes.childNodes[sno]; 
+	curSceneStart = curSceneEnd; curSceneEnd = getTime(nextscene);
+	if( curSceneStart <= pos && pos < curSceneEnd && scene ) {
+	  scene.selected = true;
+	  return;
+	}
+  }}
+  curSceneStart = curSceneEnd; curSceneEnd = UserVideo.duration; scene = nextscene; 
+  if( curSceneStart <= pos && pos <= curSceneEnd && scene ) scene.selected = true;
+}
+
+var inited = false;
+
+function InitControls(video) {
+  if(inited) return;
+  videopos.max = video.duration - 1;
+  videopos.style.width = video.videoWidth;  // video.offsetWidth || video.innerWidth; 
+  StartScene.selected = true;
+  //videopos.style.width = UserVideoControls.offsetWidth || UserVideoControls.innerWidth;
+  //video = document.querySelector("VIDEO");
+  //videopos = document.getElementById("");
+  inited = true;
+}
+
+var ratedelta = 0;
+var buttons = [ 'playbutton','fstbwdbut','fstfwdbut','snailbut' ];
+var savedicon = {};
+
+var timestamps = [[12, 19], [35, 42], [97, 100]];
+UserVideo.addEventListener("timeupdate", function() {
+	
+    if (UserVideo.currentTime <= timestamps[0][0]){
+        UserVideo.currentTime = timestamps[0][0];
+    }
+
+    if (UserVideo.currentTime >= timestamps[0][1] && UserVideo.currentTime < timestamps[1][0]){
+        UserVideo.currentTime = timestamps[1][0];
+    }
+
+    if (UserVideo.currentTime >= timestamps[1][1] && UserVideo.currentTime < timestamps[2][0]){
+        UserVideo.currentTime = timestamps[2][0];
+    }
+
+    if (UserVideo.currentTime >= timestamps[2][1]){
+        UserVideo.pause();
+    }
+
+}, false);
+
+function PlayPause(video,but,rate) {
+  if (video.paused||video.playbackRate + ratedelta != rate) PlayVideo(video,but,rate); else PauseVideo(video); 
+}
+
+function RestoreButtons() {
+  for(butno in buttons) { but_id = buttons[butno]; but = document.getElementById(but_id);
+	if(but_id in savedicon) but.value = savedicon[but_id]; }
+}
+
+function PlayVideo(video,but,rate) {
+  //if (video.currentTime > 1) GotoPos(video, 14);
+  if(video.paused) video.play(); 
+  video.playbackRate = rate; 
+  ratedelta = rate - video.playbackRate;
+  RestoreButtons();
+  if(!(but.id in savedicon)) savedicon[but.id] = but.value;
+  but.value = String.fromCharCode('0x25AE','0x25AE');
+
+}
+
+function PauseVideo(video) {
+  video.pause(); RestoreButtons();
+}
+
+function FrameStep(video,but,step) {
+  PauseVideo(video);
+  video.currentTime =  video.currentTime + step;
+  UpdateTime(video);
+}
+
+function RewindVideo(video) {
+  PauseVideo(video);
+  video.currentTime =  0;
+  UpdateTime(video);
+}
+
+function UpdateTime(video) {
+  videopos.value = video.currentTime; CheckForScene(video.currentTime);}
+
+function GotoPos(video,newpos) {
+  video.currentTime = newpos; CheckForScene(newpos); }
+
+function SelectScene(video,selector) {
+  minsec = selector.value.split(':');
+  video.currentTime = parseFloat( minsec[0]*60 + minsec[1] );
+  UpdateTime(video);
+  PlayVideo(video,playbutton,1);
+}
+
+function Mute(video,but) {
+  video.muted = !video.muted;
+  but.style.color = video.muted ? 'silver' : 'black';
+}
+
+function AdjustVolume(video,value) {
+  video.volume = value;
+  VolumeTxt.innerHTML = Math.round(value*100)+'%'
+}
+
+</script>

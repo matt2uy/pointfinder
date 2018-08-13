@@ -39,16 +39,16 @@ def get_video_timestamps():
 #####                 #####
 
 @app.route('/')
-def translate():
-    return render_template('calculate.html')
+def home():
+    return render_template('video_player2.html')
     
 @app.route('/calculate', methods=['POST'])
 def add_entry(): 
 	##### get the expression from the user-inputted form
 
-	timestamps = get_video_timestamps()
+	#timestamps = get_video_timestamps()
 
-	return render_template('calculate.html', answer_text=timestamps)
+	return render_template('video_player2.html')
 
 
     

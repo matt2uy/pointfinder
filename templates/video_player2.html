@@ -1,9 +1,19 @@
 <div id="message"></div>
 <input type="file" accept="video/*"/>
-<video id=UserVideo controls autoplay preload=auto oncanplay='InitControls(this)' ontimeupdate='UpdateTime(this)'></video>
+<video id=UserVideo preload=auto oncanplay='InitControls(this)' ontimeupdate='UpdateTime(this)'></video>
+
+
 
 <script type="text/javascript">
+
+//var UserVideo = document.getElementById("UserVideo");
+
+var frames_per_second = 60
+
+var frame_length = 1/frames_per_second
+
 // keypresses...
+
 document.addEventListener('keyup', function (event) {
     if (event.defaultPrevented) {
         return;
@@ -11,10 +21,100 @@ document.addEventListener('keyup', function (event) {
 
     var key = event.key || event.keyCode;
 
-    if (key === 'Escape' || key === 'Esc' || key === 27) {
-        alert('test');
+    // moving around
+    if (key === 'ArrowLeft' || key === 37) {
+        alert('rewind 5 seconds');
+    }
+    
+    else if (key === 'ArrowRight' || key === 39) {
+        alert('forward 10 seconds');
+    }
+    
+    // maybe switch around 'q'/'e', 'z'/'c', 'arrow left/right' combos later.
+    else if (key === 'ArrowUp' || key === 38) {
+        alert('rewind 1 frame');
+    }
+    
+    else if (key === 'ArrowDown' || key === 40) {
+        alert('forward 1 frame');
+    }
+    
+    else if (key === 'Space' || key === 32) {
+        PlayPause(UserVideo,this,1);
+        //alert('pause/play');
+    }
+    
+    else if (key === 'p' || key === 80 || key === 'KeyP') {
+        PlayPause(UserVideo,this,1);
+        //alert('pause/play');
+    }
+
+    // slice and dice
+    
+    else if (key === 'a' || key === 65 || key === 'KeyA') {
+        PauseVideo(UserVideo);
+        FrameStep(UserVideo,this,-frame_length);
+        PauseVideo(UserVideo);
+        //alert('set as "start" of point');
+    }
+    
+    else if (key === 'd' || key === 68 || key === 'KeyD') {
+        PauseVideo(UserVideo);
+        FrameStep(UserVideo,this,+frame_length);
+        PauseVideo(UserVideo);
+        //alert('set as "end" of point');
+    }
+
+    // ... some more traversing ... (related to video cuts though)
+    
+    else if (key === 'w' || key === 87 || key === 'KeyW') {
+        FrameStep(UserVideo,this,-5);
+        PlayVideo(UserVideo,playbutton,1);
+        //alert('rewind to previous "start"/"end" of point');
+    }
+    
+    else if (key === 's' || key === 83 || key === 'KeyS') {
+        FrameStep(UserVideo,this,+10);
+        PlayVideo(UserVideo,playbutton,1);
+        //alert('skip to next "start"/"end" of point');
+    }
+
+    // misc
+
+    // fullscreen
+    else if (key === 'f' || key === 70 || key === 'KeyF') {
+        UserVideo.webkitRequestFullScreen()
+    }   
+});
+
+
+
+document.addEventListener('keydown', function (event) {
+    if (event.defaultPrevented) {
+        return;
+    }
+
+    var key = event.key || event.keyCode;
+
+    // slice and dice
+    
+    if (key === 'a' || key === 65 || key === 'KeyA') {
+        PauseVideo(UserVideo);
+        // slower/choppier than frame-stepping forward?
+        FrameStep(UserVideo,this,-frame_length);
+        PauseVideo(UserVideo);
+        //alert('set as "start" of point');
+    }
+    
+    else if (key === 'd' || key === 68 || key === 'KeyD') {
+        PauseVideo(UserVideo);
+        PlayPause(UserVideo,this,0.2);
+        //FrameStep(UserVideo,this,+frame_length);
+        PauseVideo(UserVideo);
+        //alert('set as "end" of point');
     }
 });
+
 
 
 // local video controls...  
@@ -53,35 +153,6 @@ document.addEventListener('keyup', function (event) {
 
 
 
-
-<table class=VideoControls id=UserVideoControls>
- <tr><td>
-<td>
-  <select id='Scenes' onchange='SelectScene(UserVideo,this)' size=8>
-	<option value='0:00' selected id=StartScene>0:00</option>
-	<option value='0:05' id=SecondScene>0:05</option>
-	<option value='0:10'>0:10</option>
-	<option value='0:20'>0:20</option>
-	<option value='0:30'>0:30</option>
-  </select>
-  <br><br
->  <input type=button id=butStop value='&#x25FC;' onclick='RewindVideo(UserVideo);'>
-  <input type=button id=fstbwdbut value='&#x00AB;'           onclick='PlayPause(UserVideo,this,-2)'>
-  <input type=button id=butStepBwd value='&#x23B9;&#x2329;' onclick='FrameStep(UserVideo,this,-0.04)'>
-  <input type=button id=snailbut value='~'                  onclick='PlayPause(UserVideo,this,0.2)'>
-  <input type=button id=playbutton value='Play'           onclick='PlayPause(UserVideo,this,1)'>
-  <input type=button id=butStepFwd value='&#x232A;&#x23B8;' onclick='FrameStep(UserVideo,this,+0.04)'>
-  <input type=button id=fstfwdbut value='&#x00BB;'           onclick='PlayPause(UserVideo,this,2)'>
-  <br>
-  <table><tr>
-	<td><input type=range id=volume min=0 max=1 step=0.1 value=1 onchange='AdjustVolume(UserVideo,this.value)'>
-	<td><input type=button value='&#x266B;' onclick='Mute(UserVideo,this)'>
-	<td style="white-space: nowrap;">Volume: <span id=VolumeTxt> 100% </span>
-  </table>
- <tr><td>
-  <input type=range id=videopos min=0 max=0 step=0.04 onchange='GotoPos(UserVideo,this.value)'>
-  <!--progress value=3 min=0 max=10 id=videopos-->
-</table>
 
 
 
@@ -135,7 +206,8 @@ var ratedelta = 0;
 var buttons = [ 'playbutton','fstbwdbut','fstfwdbut','snailbut' ];
 var savedicon = {};
 
-var timestamps = [[12, 19], [35, 42], [97, 100]];
+//var timestamps = [[12, 19], [35, 42], [97, 100]];
+var timestamps = [];
 UserVideo.addEventListener("timeupdate", function() {
 	
     if (UserVideo.currentTime <= timestamps[0][0]){
@@ -181,7 +253,7 @@ function PauseVideo(video) {
 }
 
 function FrameStep(video,but,step) {
-  PauseVideo(video);
+  //PauseVideo(video);
   video.currentTime =  video.currentTime + step;
   UpdateTime(video);
 }
@@ -213,6 +285,17 @@ function Mute(video,but) {
 function AdjustVolume(video,value) {
   video.volume = value;
   VolumeTxt.innerHTML = Math.round(value*100)+'%'
+}
+
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen(); 
+    }
+  }
 }
 
 </script>

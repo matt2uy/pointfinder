@@ -180,8 +180,22 @@
       // 8. end of point
       else if (key === ']' || key === 221 || key === 'BracketRight') {
           add_timestamp('end_of_point');
-      }   
+      } 
+
+
   });
+
+
+  // from S.O. (lol)
+  function KeyPress(e) {
+    var evtobj = window.event ? event : e
+    if (evtobj.keyCode == 90 && evtobj.ctrlKey) { 
+      alert("undo? timestamps only? or maybe save all actions in a stack."); 
+    }
+  }
+
+  document.onkeydown = KeyPress;
+
 
   document.addEventListener('keydown', function (event) {
       if (event.defaultPrevented) {
@@ -218,13 +232,6 @@
           //alert('set as "start" of point');
       }
       
-      // 6. fast rewind (choppy)
-      else if (key === 'z' || key === 90 || key === 'KeyZ') {
-          PauseVideo(UserVideo);
-          FrameStep(UserVideo,this,-frame_length*3);
-          PauseVideo(UserVideo);
-          //alert('set as "end" of point');
-      }
   });
 
   // local video controls...  
@@ -302,8 +309,12 @@
 
   function add_timestamp(timestamp_type) {
     if (timestamp_type === 'start_of_point') {
-      // add to end -> but fix later (see below)
-      timestamps.push([]);
+      // add to end -> but fix this later (for non-linear user timestamp inputs)
+
+      // make sure that there aren't two "start points" in a row.
+      if (timestamps[timestamps.length-1][1] != null) {
+        timestamps.push([]);
+      }
       timestamps[timestamps.length-1][0] = UserVideo.currentTime;
     }
 
@@ -327,7 +338,9 @@
 
       // The currentTime property returns the current position of the audio/video playback
       document.getElementById("demo").innerHTML = UserVideo.currentTime;
-      document.getElementById("user_timestamps").innerHTML = timestamps;
+
+      readable_timestamps = timestamps
+      document.getElementById("user_timestamps").innerHTML = readable_timestamps;
 
       // must ensure that the values in "timestamps" are strictly increasing.
       // check each point in 'timestamps'

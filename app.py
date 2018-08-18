@@ -31,6 +31,7 @@ def get_video_timestamps():
 
 	# print out time elapsed.
 	end = time.time()
+	
 	elapsed = round(end - start, 2)
 	print ("Video traversal took about", elapsed, "seconds.")
 	return timestamps
@@ -40,18 +41,18 @@ def get_video_timestamps():
 
 @app.route('/')
 def home():
-    return render_template('video_player2.html')
+    return render_template('watch.html')
     
-@app.route('/calculate', methods=['POST'])
+@app.route('/watch', methods=['POST'])
 def add_entry(): 
 	##### get the expression from the user-inputted form
 
 	#timestamps = get_video_timestamps()
 
-	return render_template('video_player2.html')
+	return render_template('watch.html')
 
 
     
     
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

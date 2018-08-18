@@ -14,6 +14,7 @@
 
       <div id="message"></div>
       <p>Playback position: <span id="demo"></span></p>
+      <p>Start Points: <span id="user_timestamps"></span></p>
       <input id="choose_file" type="file" accept="video/*"/>
       <style>.videoContainer {
           position: relative;
@@ -90,6 +91,8 @@
 
   var frame_length = 1/frames_per_second
 
+  var timestamps = [[0, 0]];
+
   // keypresses...
 
   document.addEventListener('keyup', function (event) {
@@ -129,7 +132,7 @@
       else if (key === 'c' || key === 67 || key === 'KeyC') {
           PauseVideo(UserVideo);
           FrameStep(UserVideo,this,+frame_length);
-          PauseVideo(UserVideo);
+          PlayVideo(UserVideo,playbutton,1);
           //alert('set as "start" of point');
       }
 
@@ -149,12 +152,34 @@
           PlayVideo(UserVideo,playbutton,1);
           //alert('skip to next "start"/"end" of point');
       }
+      
+      // 5b. go back to start
+      else if (key === 'o' || key === 79 || key === 'KeyO') {
+          UserVideo.currentTime = 0
+      }
+      
+      // 5c. skip to end
+      else if (key === 'p' || key === 80 || key === 'KeyP') {
+          UserVideo.currentTime = UserVideo.duration
+      }
 
       // misc
 
       // 6. fullscreen
       else if (key === 'f' || key === 70 || key === 'KeyF') {
-          UserVideo.webkitRequestFullScreen()
+          UserVideo.webkitRequestFullScreen();
+      } 
+
+      // editing
+
+      // 7. start of point
+      else if (key === '[' || key === 219 || key === 'BracketLeft') {
+          add_timestamp('start_of_point');
+      }  
+
+      // 8. end of point
+      else if (key === ']' || key === 221 || key === 'BracketRight') {
+          add_timestamp('end_of_point');
       }   
   });
 
@@ -189,7 +214,7 @@
       else if (key === 'c' || key === 67 || key === 'KeyC') {
           PauseVideo(UserVideo);
           PlayPause(UserVideo,this,5);
-          PauseVideo(UserVideo);
+          PlayVideo(UserVideo,playbutton,1);
           //alert('set as "start" of point');
       }
       
@@ -275,15 +300,34 @@
   var savedicon = {};
 
 
+  function add_timestamp(timestamp_type) {
+    if (timestamp_type === 'start_of_point') {
+      // add to end -> but fix later (see below)
+      timestamps.push([]);
+      timestamps[timestamps.length-1][0] = UserVideo.currentTime;
+    }
+
+    else if (timestamp_type === 'end_of_point') {
+      // add to end -> but fix later (see below)
+      timestamps[timestamps.length-1][1] = UserVideo.currentTime;
+    }
+
+    // insert the timestamp in the correct timestamp[index]
+    // ... so that the elements are non-decreasing.
+    
+  }
 
   UserVideo.addEventListener("timeupdate", play_edit);
   function play_edit(UserVideo) {
       // I guess timestamps[0] is a placeholder for now
       // ... to prevent an off-by-one error in the if/else statements below
       // ... ([previous] point_index would be out of timestamp index.)
-      var timestamps = [[0, 0], [5, 7], [12, 14], [20, 22], [60, 63], [100, 103]];
+      
+      //var timestamps = [[0, 0]];
+
       // The currentTime property returns the current position of the audio/video playback
       document.getElementById("demo").innerHTML = UserVideo.currentTime;
+      document.getElementById("user_timestamps").innerHTML = timestamps;
 
       // must ensure that the values in "timestamps" are strictly increasing.
       // check each point in 'timestamps'
@@ -296,9 +340,9 @@
         }
 
         // pause (or maybe loop?) after last point in the video.
-        if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
+        /*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
           UserVideo.pause();
-        }
+        }*/
       }
 
       /*if (UserVideo.currentTime < timestamps[0][0]) {

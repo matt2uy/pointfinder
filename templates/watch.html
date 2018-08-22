@@ -2,272 +2,263 @@
 {% block body %}
 
 
+
 <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
-  <dl>
-    <div class="container">
-      <br/>
+	<div class="container">
+		<div class="col-md-12">
+		  <div id="message"></div>
+		  <div>Playback position: <span id="demo"></span></div>
+		  <div>Start Points: <span id="user_timestamps"></span></div>
+		  <input multiple id="choose_file" type="file" accept="video/*"/>
+		  <br><br/>
+		  <style>
+		  .overlay {
+			  height: 10%;
+			  width: 20%;
+			  position: absolute;
+			  bottom: 5%;
+			  left: 5%;
+			  z-index: 2;
+			  background: white;
+			  opacity: 0.5;
+		  }
 
-      <div class="row">
-        <div class="col-md-12">
-        <div class="form group">
+			table {
+			    font-family: arial, sans-serif;
+			    border-collapse: collapse;
+			    width: 100%;
+			}
 
+			td, th {
+			    border: 1px solid #dddddd;
+			    text-align: left;
+			    padding: 1px;
+			}
+			</style>
 
-      <div id="message"></div>
-      <p>Playback position: <span id="demo"></span></p>
-      <p>Start Points: <span id="user_timestamps"></span></p>
-      <input id="choose_file" type="file" accept="video/*"/>
-      <style>.videoContainer {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          //padding: 20px;
-          border-radius: 5px;
-          background-attachment: scroll;
-          overflow: hidden;
-      }
-      .videoContainer video {
-          min-width: 100%;
-          min-height: 100%;
-          position: relative;
-          z-index: 1;
-      }
-      .videoContainer .overlay {
-          height: 20%;
-          width: 30%;
-          position: absolute;
-          bottom: 2%;
-          left: 2%;
-          z-index: 2;
-          background: green;
-          opacity: 0.5;
-      }</style>
-      <div class="videoContainer">
-          <div class="overlay">
-            <table>
-              <tr>
-                <th>Player 1</th>
-                <th>1</th>
-                <th>0</th>
-                <th>40</th>
-              </tr>
-              <tr>
-                <td>Player 2</td>
-                <td>2</td>
-                <td>0</td>
-                <td>15</td>
-              </tr>
-            </table>
-          </div>
-          
-          <video width="100%" id="UserVideo" autoplay oncanplay='InitControls(this)' ontimeupdate='play_edit(this)'></video>
-          
-      </div> 
+		  <!-- Could be the scoreboard? -->
+		  <div class="overlay">
+				<table border=1 frame=void rules=rows>
+				  <tr>
+						<th>Player 1</th>
+						<th>1</th>
+						<th>0</th>
+						<th>40</th>
+				  </tr>
+				  <tr>
+						<td>Player 2</td>
+						<td>2</td>
+						<td>0</td>
+						<td>15</td>
+				  </tr>
+				</table>
+			 </div>
+		  
+		  <!-- Video preview -->
+		  <video width="100%" id="UserVideo" autoplay oncanplay='InitControls(this)' ontimeupdate='play_edit(this)'></video>
 
+			<!-- Progress/seek bar? -->
+			<div class="progress">
+			  <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+			  <div class="progress-bar bg-success" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+			  <div class="progress-bar bg-info" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+			</div>
 
-
-      <div>
-        <div class="progress">
-          <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
-          <div class="progress-bar bg-success" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
-          <div class="progress-bar bg-info" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        <button id="get_video" type="submit" class="btn btn-primary"%>Get video timestamps</button>
-      </div>
-
-     </div>
-        </div>
-    </div>
-    <!-- /.container -->
-  </dl>
+		</div>
+	<!-- /.container -->
 
 </form>
 
 
+
+
 <!-- keyboard events -->
 <script type="text/javascript">
+  
+  // Video variables
   //var UserVideo = document.getElementById("UserVideo");
-
   var frames_per_second = 60
-
   var frame_length = 1/frames_per_second
-
   var timestamps = [[0, 0]];
+  var time_jump_duration = 5
+  var fast_forward_rewind_speed = 3
 
-  // keypresses...
+  ///////// keypresses.../////////////////////
 
   document.addEventListener('keyup', function (event) {
-      if (event.defaultPrevented) {
-          return;
-      }
+	  if (event.defaultPrevented) {
+		  return;
+	  }
 
-      var key = event.key || event.keyCode;
+	  var key = event.key || event.keyCode;
 
-      //// moving around
+	  //// moving around
 
-      // 1. pause/play
-      if (key === 's' || key === 83 || key === 'KeyS') {
-          PlayPause(UserVideo,this,1);
-          //alert('pause/play');
-      }
+	  // 1. pause/play
+	  if (key === 's' || key === 83 || key === 'KeyS') {
+		  if (UserVideo.paused) {
+		  	UserVideo.playbackRate = 1
+		  	UserVideo.play()
+		  }
+		  else {
+		  	UserVideo.pause();
+		  }
+	  }
 
-      //// slice and dice
-      
-      // 2. frame step backwards
-      else if (key === 'q' || key === 81 || key === 'KeyQ') {
-          PauseVideo(UserVideo);
-          FrameStep(UserVideo,this,-frame_length);
-          PauseVideo(UserVideo);
-          //alert('set as "start" of point');
-      }
-      
-      // 3. frame step forwards
-      else if (key === 'e' || key === 69 || key === 'KeyE') {
-          PauseVideo(UserVideo);
-          FrameStep(UserVideo,this,+frame_length);
-          PauseVideo(UserVideo);
-          //alert('set as "end" of point');
-      }
+	  //// slice and dice
+	  
+	  // 2. frame step backwards
+	  else if (key === 'q' || key === 81 || key === 'KeyQ') {
+		  UserVideo.pause();
+	  }
+	  
+	  // 3. frame step forwards
+	  else if (key === 'e' || key === 69 || key === 'KeyE') {
+		  UserVideo.pause();
+	  }
 
-      // 4. fast forward
-      else if (key === 'c' || key === 67 || key === 'KeyC') {
-          PauseVideo(UserVideo);
-          FrameStep(UserVideo,this,+frame_length);
-          PlayVideo(UserVideo,playbutton,1);
-          //alert('set as "start" of point');
-      }
+	  // 4. fast forward
+	  else if (key === 'c' || key === 67 || key === 'KeyC') {
+		  UserVideo.pause();
+	  }
 
 
-      // ... some more traversing ... (related to video cuts though)
-      
-      // 5. skip backward 10 seconds
-      else if (key === 'a' || key === 65 || key === 'KeyA') {
-          FrameStep(UserVideo,this,-5);
-          PlayVideo(UserVideo,playbutton,1);
-          //alert('rewind to previous "start"/"end" of point');
-      }
-      
-      // 5. skip forward 5 seconds
-      else if (key === 'd' || key === 68 || key === 'KeyD') {
-          FrameStep(UserVideo,this,+5);
-          PlayVideo(UserVideo,playbutton,1);
-          //alert('skip to next "start"/"end" of point');
-      }
-      
-      // 5b. go back to start
-      else if (key === 'o' || key === 79 || key === 'KeyO') {
-          UserVideo.currentTime = 0
-      }
-      
-      // 5c. skip to end
-      else if (key === 'p' || key === 80 || key === 'KeyP') {
-          UserVideo.currentTime = UserVideo.duration
-      }
+	  // ... some more traversing ... (related to video cuts though)
+	  
+	  // 5. skip backward 10 seconds
+	  else if (key === 'a' || key === 65 || key === 'KeyA') {
+		  UserVideo.currentTime -= time_jump_duration
+		  PlayVideo(UserVideo,playbutton,1);
+	  }
+	  
+	  // 5. skip forward 5 seconds
+	  else if (key === 'd' || key === 68 || key === 'KeyD') {
+		  UserVideo.currentTime += time_jump_duration
+		  PlayVideo(UserVideo,playbutton,1);
+	  }
+	  
+	  // 5b. go back to start
+	  else if (key === 'o' || key === 79 || key === 'KeyO') {
+		  UserVideo.currentTime = 0
+	  }
+	  
+	  // 5c. skip to end
+	  else if (key === 'p' || key === 80 || key === 'KeyP') {
+		  UserVideo.currentTime = UserVideo.duration
+	  }
+	  
+	  // 6 stop "fast forward" -> play at normal speed again
+	  /*else if (key === 'c' || key === 67 || key === 'KeyC') {
+			UserVideo.playbackRate = 1
+		  UserVideo.pause()
+		  UserVideo.play()
+	  }*/
 
-      // misc
+	  // misc
 
-      // 6. fullscreen
-      else if (key === 'f' || key === 70 || key === 'KeyF') {
-          UserVideo.webkitRequestFullScreen();
-      } 
+	  
 
-      // editing
-
-      // 7. start of point
-      else if (key === '[' || key === 219 || key === 'BracketLeft') {
-          add_timestamp('start_of_point');
-      }  
-
-      // 8. end of point
-      else if (key === ']' || key === 221 || key === 'BracketRight') {
-          add_timestamp('end_of_point');
-      } 
-
+	  // editing
 
   });
 
-
-  // from S.O. (lol)
+  // from S.O.
   function KeyPress(e) {
-    var evtobj = window.event ? event : e
-    if (evtobj.keyCode == 90 && evtobj.ctrlKey) { 
-      alert("undo? timestamps only? or maybe save all actions in a stack."); 
-    }
+	var evtobj = window.event ? event : e
+	if (evtobj.keyCode == 90 && evtobj.ctrlKey) { 
+	  //alert("[Clear current 'point'] ... undo? timestamps only? or maybe save all actions in a stack."); 
+	  clear_current_point()
+	} 
+
+	// 6. fullscreen
+	else if (evtobj.keyCode === 'f' || evtobj.keyCode === 70 || evtobj.keyCode === 'KeyF') {
+		UserVideo.webkitRequestFullScreen();
+	  }
+
+	// 7. start of point
+	else if (evtobj.keyCode === '[' || evtobj.keyCode === 219 || evtobj.keyCode === 'BracketLeft') {
+		add_timestamp('start_of_point');
+	  }  
+
+	// 8. end of point
+	else if (evtobj.keyCode === ']' || evtobj.keyCode === 221 || evtobj.keyCode === 'BracketRight') {
+		add_timestamp('end_of_point');
+	  }
   }
 
   document.onkeydown = KeyPress;
 
-
   document.addEventListener('keydown', function (event) {
-      if (event.defaultPrevented) {
-          return;
-      }
+	  if (event.defaultPrevented) {
+		  return;
+	  }
 
-      var key = event.key || event.keyCode;
+	  var key = event.key || event.keyCode;
 
-      // slice and dice
-      
-      // ~2. frame step backwards
-      if (key === 'q' || key === 81 || key === 'KeyQ') {
-          PauseVideo(UserVideo);
-          // slower/choppier than frame-stepping forward?
-          FrameStep(UserVideo,this,-frame_length);
-          PauseVideo(UserVideo);
-          //alert('set as "start" of point');
-      }
-      
-      // ~3. frame step forwards
-      else if (key === 'e' || key === 69 || key === 'KeyE') {
-          PauseVideo(UserVideo);
-          PlayPause(UserVideo,this,0.2);
-          //FrameStep(UserVideo,this,+frame_length);
-          PauseVideo(UserVideo);
-          //alert('set as "end" of point');
-      }
+	  // slice and dice
+	  
+	  // ~2. frame step backwards
+	  if (key === 'q' || key === 81 || key === 'KeyQ') {
+		  UserVideo.pause();
+		  // slower/choppier than frame-stepping forward?
+		  UserVideo.currentTime -= frame_length
+		  UserVideo.pause();
+	  }
+	  
+	  // ~3. frame step forwards
+	  else if (key === 'e' || key === 69 || key === 'KeyE') {
+		  UserVideo.currentTime += frame_length
+		  UserVideo.pause();
+	  }
 
-      // ~4. fast forward
-      else if (key === 'c' || key === 67 || key === 'KeyC') {
-          PauseVideo(UserVideo);
-          PlayPause(UserVideo,this,5);
-          PlayVideo(UserVideo,playbutton,1);
-          //alert('set as "start" of point');
-      }
-      
+	  // ~4. fast forward
+	  else if (key === 'c' || key === 67 || key === 'KeyC') {
+		  UserVideo.playbackRate = fast_forward_rewind_speed
+		  UserVideo.play()
+	  }
+	  
   });
+	
 
-  // local video controls...  
+	///////// local video controls...  /////////////////////
+  
+
   (function localFileVideoPlayer() {
-    'use strict'
-    var URL = window.URL || window.webkitURL
-    var displayMessage = function (message, isError) {
-      var element = document.querySelector('#message')
-      element.innerHTML = message
-      element.className = isError ? 'error' : 'info'
-    }
-    var playSelectedFile = function (event) {
-      var file = this.files[0]
-      var type = file.type
-      var videoNode = document.querySelector('video')
-      var canPlay = videoNode.canPlayType(type)
-      if (canPlay === '') canPlay = 'no'
-      var message = 'Can play type "' + type + '": ' + canPlay
-      var isError = canPlay === 'no'
-      displayMessage(message, isError)
+	'use strict'
+	var URL = window.URL || window.webkitURL
+	var displayMessage = function (message, isError) {
+	  var element = document.querySelector('#message')
+	  element.innerHTML = message
+	  element.className = isError ? 'error' : 'info'
+	}
+	var playSelectedFile = function (event) {
 
-      if (isError) {
-        return
-      }
+	  var file = this.files[0]
 
-      var fileURL = URL.createObjectURL(file)
-      videoNode.src = fileURL
-    }
-    var inputNode = document.querySelector('input')
-    inputNode.addEventListener('change', playSelectedFile, false)
+	  var type = file.type
+	  var videoNode = document.querySelector('video')
+	  var canPlay = videoNode.canPlayType(type)
+	  if (canPlay === '') canPlay = 'no'
+	  var message = 'Can play type "' + type + '": ' + canPlay + this.files.length
+	  var isError = canPlay === 'no'
+	  displayMessage(message, isError)
+
+	  if (isError) {
+		return
+	  }
+
+	  var fileURL = URL.createObjectURL(file)
+	  videoNode.src = fileURL
+
+	}
+	var inputNode = document.querySelector('input')
+	inputNode.addEventListener('change', playSelectedFile, false)
   })()
 
   //video traversal events
   function getTime(opt) {
-    minsec = opt.value.split(':');
-    return parseFloat( minsec[0]*60 + minsec[1] );
+	minsec = opt.value.split(':');
+	return parseFloat( minsec[0]*60 + minsec[1] );
   }
 
   var curScene = StartScene;
@@ -275,31 +266,31 @@
   var curSceneEnd = getTime(SecondScene);
 
   function CheckForScene(pos) {
-    if( curSceneStart <= pos && pos <= curSceneEnd ) return;
-    curSceneEnd = 0; nextscene = scene = null; 
-    for(sno in Scenes.childNodes) { cn = Scenes.childNodes[sno]; if(cn.tagName=="OPTION") {
-    scene = nextscene; nextscene = Scenes.childNodes[sno]; 
-    curSceneStart = curSceneEnd; curSceneEnd = getTime(nextscene);
-    if( curSceneStart <= pos && pos < curSceneEnd && scene ) {
-      scene.selected = true;
-      return;
-    }
-    }}
-    curSceneStart = curSceneEnd; curSceneEnd = UserVideo.duration; scene = nextscene; 
-    if( curSceneStart <= pos && pos <= curSceneEnd && scene ) scene.selected = true;
+	if( curSceneStart <= pos && pos <= curSceneEnd ) return;
+	curSceneEnd = 0; nextscene = scene = null; 
+	for(sno in Scenes.childNodes) { cn = Scenes.childNodes[sno]; if(cn.tagName=="OPTION") {
+	scene = nextscene; nextscene = Scenes.childNodes[sno]; 
+	curSceneStart = curSceneEnd; curSceneEnd = getTime(nextscene);
+	if( curSceneStart <= pos && pos < curSceneEnd && scene ) {
+	  scene.selected = true;
+	  return;
+	}
+	}}
+	curSceneStart = curSceneEnd; curSceneEnd = UserVideo.duration; scene = nextscene; 
+	if( curSceneStart <= pos && pos <= curSceneEnd && scene ) scene.selected = true;
   }
 
   var inited = false;
 
   function InitControls(video) {
-    if(inited) return;
-    videopos.max = video.duration - 1;
-    videopos.style.width = video.videoWidth;  // video.offsetWidth || video.innerWidth; 
-    StartScene.selected = true;
-    //videopos.style.width = UserVideoControls.offsetWidth || UserVideoControls.innerWidth;
-    //video = document.querySelector("VIDEO");
-    //videopos = document.getElementById("");
-    inited = true;
+	if(inited) return;
+	videopos.max = video.duration - 1;
+	videopos.style.width = video.videoWidth;  // video.offsetWidth || video.innerWidth; 
+	StartScene.selected = true;
+	//videopos.style.width = UserVideoControls.offsetWidth || UserVideoControls.innerWidth;
+	//video = document.querySelector("VIDEO");
+	//videopos = document.getElementById("");
+	inited = true;
   }
 
   var ratedelta = 0;
@@ -308,143 +299,135 @@
 
 
   function add_timestamp(timestamp_type) {
-    if (timestamp_type === 'start_of_point') {
-      // add to end -> but fix this later (for non-linear user timestamp inputs)
+	if (timestamp_type === 'start_of_point') {
+	  // add to end -> but fix this later (for non-linear user timestamp inputs)
 
-      // make sure that there aren't two "start points" in a row.
-      if (timestamps[timestamps.length-1][1] != null) {
-        timestamps.push([]);
-      }
-      timestamps[timestamps.length-1][0] = UserVideo.currentTime;
-    }
+	  // make sure that there aren't two "start points" in a row.
+	  if (timestamps[timestamps.length-1][1] != null) {
+		timestamps.push([]);
+	  }
+	  timestamps[timestamps.length-1][0] = UserVideo.currentTime;
+	}
 
-    else if (timestamp_type === 'end_of_point') {
-      // add to end -> but fix later (see below)
-      timestamps[timestamps.length-1][1] = UserVideo.currentTime;
-    }
+	else if (timestamp_type === 'end_of_point') {
+	  // add to end -> but fix later (see below)
+	  timestamps[timestamps.length-1][1] = UserVideo.currentTime;
+	}
 
-    // insert the timestamp in the correct timestamp[index]
-    // ... so that the elements are non-decreasing.
-    
+	// insert the timestamp in the correct timestamp[index]
+	// ... so that the elements are non-decreasing.
+	
+  }
+
+  function clear_current_point() {
+	if (timestamps.length > 1) {
+	  timestamps = timestamps.slice(0, -1)
+	  play_edit(UserVideo)
+	}
+	
   }
 
   UserVideo.addEventListener("timeupdate", play_edit);
   function play_edit(UserVideo) {
-      // I guess timestamps[0] is a placeholder for now
-      // ... to prevent an off-by-one error in the if/else statements below
-      // ... ([previous] point_index would be out of timestamp index.)
-      
-      //var timestamps = [[0, 0]];
+	  // I guess timestamps[0] is a placeholder for now
+	  // ... to prevent an off-by-one error in the if/else statements below
+	  // ... ([previous] point_index would be out of timestamp index.)
+	  
+	  //var timestamps = [[0, 0]];
 
-      // The currentTime property returns the current position of the audio/video playback
-      document.getElementById("demo").innerHTML = UserVideo.currentTime;
+	  // The currentTime property returns the current position of the audio/video playback
+	  document.getElementById("demo").innerHTML = UserVideo.currentTime;
 
-      readable_timestamps = timestamps
-      document.getElementById("user_timestamps").innerHTML = readable_timestamps;
+	  readable_timestamps = JSON.stringify(timestamps);
+	  document.getElementById("user_timestamps").innerHTML = readable_timestamps;
 
-      // must ensure that the values in "timestamps" are strictly increasing.
-      // check each point in 'timestamps'
-      for (var point_index = 1; point_index < timestamps.length-1; point_index++) {
-        if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-            UserVideo.currentTime = timestamps[point_index][0];
-        }
-        else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-            UserVideo.currentTime = timestamps[point_index+1][0];
-        }
+	  // must ensure that the values in "timestamps" are strictly increasing.
+	  // check each point in 'timestamps'
+	  for (var point_index = 1; point_index < timestamps.length-1; point_index++) {
+		if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+			UserVideo.currentTime = timestamps[point_index][0];
+		}
+		else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+			UserVideo.currentTime = timestamps[point_index+1][0];
+		}
 
-        // pause (or maybe loop?) after last point in the video.
-        /*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
-          UserVideo.pause();
-        }*/
-      }
+		// pause (or maybe loop?) after last point in the video.
+		/*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
+		  UserVideo.pause();
+		}*/
+	  }
 
-      /*if (UserVideo.currentTime < timestamps[0][0]) {
-          UserVideo.currentTime = timestamps[0][0];
-      }
+	  /*if (UserVideo.currentTime < timestamps[0][0]) {
+		  UserVideo.currentTime = timestamps[0][0];
+	  }
 
-      if (UserVideo.currentTime >= timestamps[0][1] && UserVideo.currentTime < timestamps[1][0]) {
-          UserVideo.currentTime = timestamps[1][0];
-      }*/
+	  if (UserVideo.currentTime >= timestamps[0][1] && UserVideo.currentTime < timestamps[1][0]) {
+		  UserVideo.currentTime = timestamps[1][0];
+	  }*/
 
-      /*if (UserVideo.currentTime >= timestamps[1][1] && UserVideo.currentTime < timestamps[2][0]) {
-          UserVideo.currentTime = timestamps[2][0];
-      }
+	  /*if (UserVideo.currentTime >= timestamps[1][1] && UserVideo.currentTime < timestamps[2][0]) {
+		  UserVideo.currentTime = timestamps[2][0];
+	  }
 
-      if (UserVideo.currentTime >= timestamps[2][1]) {
-          UserVideo.pause();
-      }*/
+	  if (UserVideo.currentTime >= timestamps[2][1]) {
+		  UserVideo.pause();
+	  }*/
 
-
-  }
-
-  function PlayPause(video,but,rate) {
-    if (video.paused||video.playbackRate + ratedelta != rate) PlayVideo(video,but,rate); else PauseVideo(video); 
-  }
-
-  function RestoreButtons() {
-    for(butno in buttons) { but_id = buttons[butno]; but = document.getElementById(but_id);
-    if(but_id in savedicon) but.value = savedicon[but_id]; }
   }
 
   function PlayVideo(video,but,rate) {
-    //if (video.currentTime > 1) GotoPos(video, 14);
-    if(video.paused) video.play(); 
-    video.playbackRate = rate; 
-    ratedelta = rate - video.playbackRate;
-    RestoreButtons();
-    if(!(but.id in savedicon)) savedicon[but.id] = but.value;
-    but.value = String.fromCharCode('0x25AE','0x25AE');
+	//if (video.currentTime > 1) GotoPos(video, 14);
+	if(video.paused) video.play(); 
+	video.playbackRate = rate; 
+	ratedelta = rate - video.playbackRate;
+	if(!(but.id in savedicon)) savedicon[but.id] = but.value;
+	but.value = String.fromCharCode('0x25AE','0x25AE');
 
-  }
-
-  function PauseVideo(video) {
-    video.pause(); RestoreButtons();
   }
 
   function FrameStep(video,but,step) {
-    //PauseVideo(video);
-    video.currentTime =  video.currentTime + step;
-    UpdateTime(video);
+	video.currentTime =  video.currentTime + step;
+	UpdateTime(video);
   }
 
   function RewindVideo(video) {
-    PauseVideo(video);
-    video.currentTime =  0;
-    UpdateTime(video);
+	video.pause();
+	video.currentTime =  0;
+	UpdateTime(video);
   }
 
   function UpdateTime(video) {
-    videopos.value = video.currentTime; CheckForScene(video.currentTime);}
+	videopos.value = video.currentTime; CheckForScene(video.currentTime);}
 
   function GotoPos(video,newpos) {
-    video.currentTime = newpos; CheckForScene(newpos); }
+	video.currentTime = newpos; CheckForScene(newpos); }
 
   function SelectScene(video,selector) {
-    minsec = selector.value.split(':');
-    video.currentTime = parseFloat( minsec[0]*60 + minsec[1] );
-    UpdateTime(video);
-    PlayVideo(video,playbutton,1);
+	minsec = selector.value.split(':');
+	video.currentTime = parseFloat( minsec[0]*60 + minsec[1] );
+	UpdateTime(video);
+	PlayVideo(video,playbutton,1);
   }
 
   function Mute(video,but) {
-    video.muted = !video.muted;
-    but.style.color = video.muted ? 'silver' : 'black';
+	video.muted = !video.muted;
+	but.style.color = video.muted ? 'silver' : 'black';
   }
 
   function AdjustVolume(video,value) {
-    video.volume = value;
-    VolumeTxt.innerHTML = Math.round(value*100)+'%'
+	video.volume = value;
+	VolumeTxt.innerHTML = Math.round(value*100)+'%'
   }
 
 
   function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen(); 
-      }
-    }
+	if (!document.fullscreenElement) {
+		document.documentElement.requestFullscreen();
+	} else {
+	  if (document.exitFullscreen) {
+		document.exitFullscreen(); 
+	  }
+	}
   }
 </script>
 

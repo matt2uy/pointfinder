@@ -41,7 +41,7 @@ Resources:
 '''
 
 # Video files
-video_path = "cmd_interface/source_videos/full_match2.mp4" 
+video_path = "source_videos/full_match.mp4" 
 
 # opencv video attribute constants
 VIDEO_CAPTURE_WIDTH = 3
@@ -51,11 +51,11 @@ VIDEO_CAPTURE_FRAMES_PER_SECOND = 5
 import cv2
 import numpy as np
 #import matplotlib.pyplot as plt
-#from moviepy.editor import VideoFileClip, concatenate_videoclips
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 import sys
 
 ##### Video Editing #####
-"""
+
 def trim_video(start_time, end_time, new_file_path, source_file_path):
 	''' Trim video using ffmpeg.
 	note: not sure what unit 'start_frame' is. Is it frames/seconds/...etc?
@@ -85,7 +85,8 @@ def merge_video(list_of_video_paths, new_file_path):
 	edited_video = concatenate_videoclips(list_of_videos)
 	edited_video.write_videofile(new_file_path)
 
-def cut_video_in_points_of_interest(point_timestamps):
+# export video
+def export_video(point_timestamps, origin_files):
 	'''
 	point_timestamps is in the form of: list[list[start_time, end_time]]
 	'''
@@ -94,28 +95,13 @@ def cut_video_in_points_of_interest(point_timestamps):
 	for i in range(len(point_timestamps)):
 		# video cuts before point ends
 		if len(point_timestamps[i]) == 1: 
-			trim_video(point_timestamps[i][0], -1, "auto_generated_files/newvid" + str(i) + ".mp4", video_path)
+			trim_video(point_timestamps[i][0], -1, "auto_generated_files/newvid" + str(i) + ".mp4", origin_files)
 		# just a regular point
 		else: 
-			trim_video(point_timestamps[i][0], point_timestamps[i][1], "auto_generated_files/newvid" + str(i) + ".mp4", video_path)
+			trim_video(point_timestamps[i][0], point_timestamps[i][1], "auto_generated_files/newvid" + str(i) + ".mp4", origin_files)
 		list_of_video_paths.append("auto_generated_files/newvid" + str(i) + ".mp4")
 	# concatenate all trimmed video files.
 	merge_video(list_of_video_paths, "edited_video.mp4")
-"""
-
-'''# 8:50pm, 11/21/17
-- remove later... once cut_video_in_points_of_interest is finished
-
-- note that clean_up_noisy_timestamps() returns the provided parameter.
-'''
-'''
-# the algorithm produces margins that are slightly off, so I manually added some for now
-point_timestamps = [[13.0, 21.933333333333334-2], [37.4-1, 39.0+2], [56.833333333333336, 61.666666666666664], [82.4, 88.43333333333334], [95.3]]
-# removed the floats -> kind of removed one pause for the last point
-#point_timestamps = [[12-2, 22], [34-2, 39+2], [54-2, 62+2], [82-2, 88+2], [95]]
-
-cut_video_in_points_of_interest(point_timestamps)
-'''
 
 ##### Video Capture #####
 
@@ -637,7 +623,7 @@ if __name__ == '__main__':
 	#doctest.testmod()
 	
 	# maybe do a 'profile' to see how fast things are going?
-	import time 
+	'''import time 
 	start = time.time() # ^ like this?
 
 	# Capture motion data from various "areas" of the video
@@ -648,4 +634,11 @@ if __name__ == '__main__':
 	# print out time elapsed.
 	end = time.time()
 	elapsed = round(end - start, 2)
-	print ("Video traversal took about", elapsed, "seconds.")
+	print ("Video traversal took about", elapsed, "seconds.")'''
+
+	# the algorithm produces margins that are slightly off, so I manually added some for now
+	#point_timestamps = [[11.149499,27.916655],[43.398623,46.770612],[62.854776,77.02182],[86.827509,104.009465],[130.962589,141.039164],[178.583966,185.383525],[199.109151,201.347525],[228.720753,233.360046],[255.042824,263.154518],[273.821519,284.419807],[306.667587,308.677622],[327.682161,332.908469],[347.549757,354.934564],[391.369907,398.595244],[422.3267,430.390473],[445.576999,448.730098],[471.90233,474.317949],[501.60528,509.53292],[530.658722]]
+	# removed the floats -> kind of removed one pause for the last point
+	point_timestamps = [[12-2, 22], [34-2, 39+2], [54-2, 62+2], [82-2, 88+2], [95]]
+	# "C:/Users/matt2/Desktop/Videos/8-18-18 Tennis/GOPR2267.mp4"
+	export_video(point_timestamps, "C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/source_videos/full_match.mp4")

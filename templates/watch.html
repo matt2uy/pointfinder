@@ -6,34 +6,39 @@
 <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
 	<div class="container">
 		<div class="col-md-12">
-		  <div id="message"></div>
-		  <div>Playback position: <span id="demo"></span></div>
-		  <div>Start Points: <span id="user_timestamps"></span></div>
+	  
 		  <input multiple id="choose_file" type="file" accept="video/*"/>
-		  <br><br/>
+		  <font size="1">
+		  	<div>Start Points: <span id="user_timestamps"></span></div>
+		  	<div>Edit Length: <span id="edit_length"></span></div>
+		  	<div id="message"></div>
+		 	</font>
+			
 		  <style>
 		  .overlay {
-			  height: 10%;
-			  width: 20%;
-			  position: absolute;
-			  bottom: 5%;
-			  left: 5%;
-			  z-index: 2;
-			  background: white;
-			  opacity: 0.5;
-		  }
+				  height: 10%;
+				  width: 20%;
+				  position: absolute;
+				  bottom: 20%;
+				  left: 5%;
+				  z-index: 2;
+				  background: white;
+				  opacity: 0.35;
+			  }
 
-			table {
-			    font-family: arial, sans-serif;
-			    border-collapse: collapse;
-			    width: 100%;
-			}
+				table {
+						font-size:2vw;
+				    font-family: arial, sans-serif;
+				    border-collapse: collapse;
+				    width: 100%;
+				}
 
-			td, th {
-			    border: 1px solid #dddddd;
-			    text-align: left;
-			    padding: 1px;
-			}
+				td, th {
+
+				    border: 1px solid #dddddd;
+				    text-align: left;
+				    padding: 1px;
+				}
 			</style>
 
 		  <!-- Could be the scoreboard? -->
@@ -55,7 +60,7 @@
 			 </div>
 		  
 		  <!-- Video preview -->
-		  <video width="100%" id="UserVideo" autoplay oncanplay='InitControls(this)' ontimeupdate='play_edit(this)'></video>
+		  <video width="100%" id="UserVideo" autoplay ontimeupdate='play_edit(this)'></video>
 
 			<!-- Progress/seek bar? -->
 			<div class="progress">
@@ -63,6 +68,49 @@
 			  <div class="progress-bar bg-success" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
 			  <div class="progress-bar bg-info" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
 			</div>
+
+			<!-- a bunch of buttons -->
+      <div class="row">
+        <div class="col-md-12">
+		   		<div class="form group">
+
+			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+						  <div class="btn-group mr-1" role="group" aria-label="First group">
+						    <button type="button" class="btn btn-secondary mr-1" onclick="skip_to_start();">|<-</button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="fast_rewind();"><<<</button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="skip_backward_by_increment();">5<-</button>
+						    <button type="button" class="btn btn-secondary" onclick="frame_step_backward();"><</button>
+						  </div>
+						  <div class="btn-group mr-1" role="group" aria-label="Second group">
+						    <button type="button" class="btn btn-secondary" onclick="play_pause_video();">Play/Pause</button>
+						  </div>
+						  <div class="btn-group" role="group" aria-label="Third group">
+						    <button type="button" class="btn btn-secondary mr-1" onclick="frame_step_forward();">></button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="skip_forward_by_increment();">->5</button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="fast_forward();">>>></button>
+						    <button type="button" class="btn btn-secondary" onclick="skip_to_end();">->|</button>
+						  </div>
+						</div>
+
+
+			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+						  <div class="btn-group mr-1" role="group" aria-label="First group">
+						    <button type="button" class="btn btn-secondary mr-1" onclick="go_to_fullscreen();">Full Screen</button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="clear_current_point();">Undo<-</button>
+						    <button type="button" class="btn btn-secondary mr-1" onclick="add_timestamp('start_of_point');">[</button>
+						    <button type="button" class="btn btn-secondary" onclick="add_timestamp('end_of_point');">]</button>
+						  </div>
+						</div>
+
+
+
+
+
+		  		</div>
+    		</div>
+    	</div>
+
+
 
 		</div>
 	<!-- /.container -->
@@ -79,9 +127,9 @@
   //var UserVideo = document.getElementById("UserVideo");
   var frames_per_second = 60
   var frame_length = 1/frames_per_second
-  var timestamps = [[0, 0]];
+  var timestamps = [[0,0],[10659.624991,10677.247378],[10705.653607,10713.585325],[10740.439974,10747.468202],[10774.526869,10781.634575],[10806.361122,10811.59813],[10838.100636,10850.915273],[10916.399675,10926.900285],[10958.368933,10980.987089],[11019.052785,11040.202575],[11075.293328,11095.853087]];
   var time_jump_duration = 5
-  var fast_forward_rewind_speed = 3
+  var fast_forward_rewind_speed = 5
 
   ///////// keypresses.../////////////////////
 
@@ -96,98 +144,81 @@
 
 	  // 1. pause/play
 	  if (key === 's' || key === 83 || key === 'KeyS') {
-		  if (UserVideo.paused) {
-		  	UserVideo.playbackRate = 1
-		  	UserVideo.play()
-		  }
-		  else {
-		  	UserVideo.pause();
-		  }
+		  play_pause_video();
 	  }
 
 	  //// slice and dice
 	  
 	  // 2. frame step backwards
 	  else if (key === 'q' || key === 81 || key === 'KeyQ') {
-		  UserVideo.pause();
+		  frame_step_backward();
 	  }
 	  
 	  // 3. frame step forwards
 	  else if (key === 'e' || key === 69 || key === 'KeyE') {
-		  UserVideo.pause();
+		  frame_step_forward();
 	  }
 
 	  // 4. fast forward
 	  else if (key === 'c' || key === 67 || key === 'KeyC') {
-		  UserVideo.pause();
+		  fast_forward();
 	  }
 
 
 	  // ... some more traversing ... (related to video cuts though)
 	  
-	  // 5. skip backward 10 seconds
+	  // 5. skip backward x seconds
 	  else if (key === 'a' || key === 65 || key === 'KeyA') {
-		  UserVideo.currentTime -= time_jump_duration
-		  PlayVideo(UserVideo,playbutton,1);
+		  skip_backward_by_increment();
 	  }
 	  
-	  // 5. skip forward 5 seconds
+	  // 5. skip forward x seconds
 	  else if (key === 'd' || key === 68 || key === 'KeyD') {
-		  UserVideo.currentTime += time_jump_duration
-		  PlayVideo(UserVideo,playbutton,1);
+		  skip_forward_by_increment();
 	  }
 	  
 	  // 5b. go back to start
 	  else if (key === 'o' || key === 79 || key === 'KeyO') {
-		  UserVideo.currentTime = 0
+		  skip_to_start();
 	  }
 	  
 	  // 5c. skip to end
 	  else if (key === 'p' || key === 80 || key === 'KeyP') {
-		  UserVideo.currentTime = UserVideo.duration
+	  	skip_to_end();
 	  }
-	  
-	  // 6 stop "fast forward" -> play at normal speed again
-	  /*else if (key === 'c' || key === 67 || key === 'KeyC') {
-			UserVideo.playbackRate = 1
-		  UserVideo.pause()
-		  UserVideo.play()
-	  }*/
 
-	  // misc
-
-	  
-
-	  // editing
+	  // next: go to next start/end timestamp
 
   });
 
-  // from S.O.
+  // run function when key is pressed down (if held down, it will run many times though) (from S.O.)
+  // maybe "keypress" will be used to timing sensitive functions.
   function KeyPress(e) {
-	var evtobj = window.event ? event : e
-	if (evtobj.keyCode == 90 && evtobj.ctrlKey) { 
-	  //alert("[Clear current 'point'] ... undo? timestamps only? or maybe save all actions in a stack."); 
-	  clear_current_point()
-	} 
+		var evtobj = window.event ? event : e
 
-	// 6. fullscreen
-	else if (evtobj.keyCode === 'f' || evtobj.keyCode === 70 || evtobj.keyCode === 'KeyF') {
-		UserVideo.webkitRequestFullScreen();
-	  }
+		// undo current/previous point
+		if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
+		  clear_current_point()
+		} 
 
-	// 7. start of point
-	else if (evtobj.keyCode === '[' || evtobj.keyCode === 219 || evtobj.keyCode === 'BracketLeft') {
-		add_timestamp('start_of_point');
-	  }  
+		// go to fullscreen
+		else if (evtobj.keyCode === 'f' || evtobj.keyCode === 70 || evtobj.keyCode === 'KeyF') {
+			go_to_fullscreen();	
+		 }
 
-	// 8. end of point
-	else if (evtobj.keyCode === ']' || evtobj.keyCode === 221 || evtobj.keyCode === 'BracketRight') {
-		add_timestamp('end_of_point');
-	  }
+		// set start of point
+		else if (evtobj.keyCode === '[' || evtobj.keyCode === 219 || evtobj.keyCode === 'BracketLeft') {
+			add_timestamp('start_of_point');
+		  }  
+
+		// set end of point
+		else if (evtobj.keyCode === ']' || evtobj.keyCode === 221 || evtobj.keyCode === 'BracketRight') {
+			add_timestamp('end_of_point');
+		  }
   }
 
   document.onkeydown = KeyPress;
-
+  /*
   document.addEventListener('keydown', function (event) {
 	  if (event.defaultPrevented) {
 		  return;
@@ -199,135 +230,220 @@
 	  
 	  // ~2. frame step backwards
 	  if (key === 'q' || key === 81 || key === 'KeyQ') {
-		  UserVideo.pause();
 		  // slower/choppier than frame-stepping forward?
-		  UserVideo.currentTime -= frame_length
-		  UserVideo.pause();
+		  UserVideo.currentTime -= frame_length;
+		  pause_video();
 	  }
 	  
 	  // ~3. frame step forwards
 	  else if (key === 'e' || key === 69 || key === 'KeyE') {
-		  UserVideo.currentTime += frame_length
-		  UserVideo.pause();
+		  UserVideo.currentTime += frame_length;
+		  pause_video();
 	  }
 
 	  // ~4. fast forward
 	  else if (key === 'c' || key === 67 || key === 'KeyC') {
-		  UserVideo.playbackRate = fast_forward_rewind_speed
-		  UserVideo.play()
+		  UserVideo.playbackRate = fast_forward_rewind_speed;
+		  pause_video();
 	  }
 	  
   });
-	
+	*/
 
-	///////// local video controls...  /////////////////////
+
+	///////// I guess this function runs the file(s) that were inputed by the user? ////////////
+
   
 
   (function localFileVideoPlayer() {
-	'use strict'
-	var URL = window.URL || window.webkitURL
-	var displayMessage = function (message, isError) {
-	  var element = document.querySelector('#message')
-	  element.innerHTML = message
-	  element.className = isError ? 'error' : 'info'
-	}
-	var playSelectedFile = function (event) {
+		
+		'use strict'
+		var URL = window.URL || window.webkitURL
+		
+		var displayMessage = function (message, isError) {
+		  var element = document.querySelector('#message')
+		  element.innerHTML = message
+		  element.className = isError ? 'error' : 'info'
+		}
 
-	  var file = this.files[0]
+		var playSelectedFile = function (event) {
+		  var file = this.files[0]
+		  var type = file.type
+		  var videoNode = document.querySelector('video')
+		  var canPlay = videoNode.canPlayType(type)
+		  if (canPlay === '') canPlay = 'no'
+		  var message = 'Can play type "' + type + '": ' + canPlay + this.files.length
+		  var isError = canPlay === 'no'
+		  displayMessage(message, isError)
 
-	  var type = file.type
-	  var videoNode = document.querySelector('video')
-	  var canPlay = videoNode.canPlayType(type)
-	  if (canPlay === '') canPlay = 'no'
-	  var message = 'Can play type "' + type + '": ' + canPlay + this.files.length
-	  var isError = canPlay === 'no'
-	  displayMessage(message, isError)
+		  if (isError) {
+			return
+		  }
 
-	  if (isError) {
-		return
-	  }
+		  var fileURL = URL.createObjectURL(file)
+		  videoNode.src = fileURL
 
-	  var fileURL = URL.createObjectURL(file)
-	  videoNode.src = fileURL
-
-	}
-	var inputNode = document.querySelector('input')
-	inputNode.addEventListener('change', playSelectedFile, false)
+		}
+		var inputNode = document.querySelector('input')
+		// if anything concerning the "input" is modified, then 'playSelectedFile()' is run.
+		inputNode.addEventListener('change', playSelectedFile, false)
   })()
 
-  //video traversal events
-  function getTime(opt) {
-	minsec = opt.value.split(':');
-	return parseFloat( minsec[0]*60 + minsec[1] );
+
+
+  ///////// User control functions //////////// 
+
+
+
+  function play_pause_video() {
+  	if (UserVideo.paused) {
+		  	UserVideo.playbackRate = 1
+		  	UserVideo.play()
+		  }
+		  else {
+		  	UserVideo.pause();
+		  }
   }
 
-  var curScene = StartScene;
-  var curSceneStart = getTime(StartScene);
-  var curSceneEnd = getTime(SecondScene);
-
-  function CheckForScene(pos) {
-	if( curSceneStart <= pos && pos <= curSceneEnd ) return;
-	curSceneEnd = 0; nextscene = scene = null; 
-	for(sno in Scenes.childNodes) { cn = Scenes.childNodes[sno]; if(cn.tagName=="OPTION") {
-	scene = nextscene; nextscene = Scenes.childNodes[sno]; 
-	curSceneStart = curSceneEnd; curSceneEnd = getTime(nextscene);
-	if( curSceneStart <= pos && pos < curSceneEnd && scene ) {
-	  scene.selected = true;
-	  return;
-	}
-	}}
-	curSceneStart = curSceneEnd; curSceneEnd = UserVideo.duration; scene = nextscene; 
-	if( curSceneStart <= pos && pos <= curSceneEnd && scene ) scene.selected = true;
+  function pause_video() {
+  	UserVideo.pause();
   }
 
-  var inited = false;
-
-  function InitControls(video) {
-	if(inited) return;
-	videopos.max = video.duration - 1;
-	videopos.style.width = video.videoWidth;  // video.offsetWidth || video.innerWidth; 
-	StartScene.selected = true;
-	//videopos.style.width = UserVideoControls.offsetWidth || UserVideoControls.innerWidth;
-	//video = document.querySelector("VIDEO");
-	//videopos = document.getElementById("");
-	inited = true;
+  function play_video() {
+  	UserVideo.play()
   }
 
-  var ratedelta = 0;
-  var buttons = [ 'playbutton','fstbwdbut','fstfwdbut','snailbut' ];
-  var savedicon = {};
+  function skip_to_start() {
+  	UserVideo.currentTime = 0;
+  }
+
+  function skip_to_end() {
+  	UserVideo.currentTime = UserVideo.duration;
+  }
+
+  function fast_forward() {
+  	// let's toggle it
+  	if (UserVideo.playbackRate === 1) {
+  		UserVideo.playbackRate = fast_forward_rewind_speed;
+  	}
+  	else if (UserVideo.playbackRate > 1) {
+  		UserVideo.playbackRate = 1;
+  	}
+  	UserVideo.play();
+  }
+
+  function fast_rewind() {
+  	// let's toggle it
+  	if (UserVideo.playbackRate === 1) {
+  		UserVideo.playbackRate = -fast_forward_rewind_speed;
+  	}
+  	else if (UserVideo.playbackRate > 1) {
+  		UserVideo.playbackRate = 1;
+  	}
+  }
+
+  function skip_forward_by_increment() {
+  	UserVideo.currentTime += time_jump_duration;
+		//pause_video();
+  }
+
+  function skip_backward_by_increment() {
+  	UserVideo.currentTime -= time_jump_duration;
+		//pause_video();
+  }
+
+  function frame_step_forward() {
+  	UserVideo.currentTime += frame_length;
+		pause_video();
+  }
+
+  function frame_step_backward() {
+  	UserVideo.currentTime -= frame_length;
+		pause_video();
+  }
 
 
+
+  
+
+  // I guess there's no toggle available yet?
+  function go_to_fullscreen() {
+  	UserVideo.webkitRequestFullScreen();
+  }
+  
+  
+  
+
+
+
+	///////// Video editing events //////////// 
+
+
+
+  // add start/end timestamps
   function add_timestamp(timestamp_type) {
-	if (timestamp_type === 'start_of_point') {
-	  // add to end -> but fix this later (for non-linear user timestamp inputs)
+		if (timestamp_type === 'start_of_point') {
+		  // add to end -> but fix this later (for non-linear user timestamp inputs)
 
-	  // make sure that there aren't two "start points" in a row.
-	  if (timestamps[timestamps.length-1][1] != null) {
-		timestamps.push([]);
-	  }
-	  timestamps[timestamps.length-1][0] = UserVideo.currentTime;
-	}
+		  // make sure that there aren't two "start points" in a row.
+		  if (timestamps[timestamps.length-1][1] != null) {
+			timestamps.push([]);
+		  }
+		  timestamps[timestamps.length-1][0] = UserVideo.currentTime;
+		}
 
-	else if (timestamp_type === 'end_of_point') {
-	  // add to end -> but fix later (see below)
-	  timestamps[timestamps.length-1][1] = UserVideo.currentTime;
-	}
+		else if (timestamp_type === 'end_of_point') {
+		  // add to end -> but fix later (see below)
+		  timestamps[timestamps.length-1][1] = UserVideo.currentTime;
+		}
 
-	// insert the timestamp in the correct timestamp[index]
-	// ... so that the elements are non-decreasing.
-	
+		// insert the timestamp in the correct timestamp[index]
+		// ... so that the elements are non-decreasing.
   }
 
+  // "undo"/remove a point from "timestamps" array
   function clear_current_point() {
-	if (timestamps.length > 1) {
-	  timestamps = timestamps.slice(0, -1)
-	  play_edit(UserVideo)
-	}
-	
+		if (timestamps.length > 1) {
+		  timestamps = timestamps.slice(0, -1)
+		  play_edit(UserVideo)
+		}	
   }
 
-  UserVideo.addEventListener("timeupdate", play_edit);
+  // get the length (in seconds) of the user's edit
+  function get_edit_length(timestamps) {
+  	edit_length = 0
+  	for (var point_index = 0; point_index < timestamps.length; point_index++) {
+  		// only check for time if the "point" is "complete"
+  		if (timestamps[point_index].length === 2) {
+  			edit_length += (timestamps[point_index][1] - timestamps[point_index][0])
+  		}
+
+  		// though, do a running tally of the current point.
+  		else {
+  			edit_length += (UserVideo.currentTime - timestamps[timestamps.length-1][0])
+  		}
+  	}
+  
+  	// js convert seconds to minutes:seconds (stack overflow)
+    // Hours, minutes and seconds
+
+    var hrs = ~~(edit_length / 3600); // it appears that '~~' is a "faster" version of Math.floor()
+    var mins = ~~((edit_length % 3600) / 60);
+    var secs = Math.round(edit_length % 60);
+
+    // Output like "1:01" or "4:03:59" or "123:03:59"
+    var formatted_time = "";
+
+    if (hrs > 0) {
+        formatted_time += "" + hrs + ":" + (mins < 10 ? "0" : "");
+    }
+
+    formatted_time += "" + mins + ":" + (secs < 10 ? "0" : "");
+    formatted_time += "" + secs;
+    return formatted_time;
+
+  }
+
   function play_edit(UserVideo) {
 	  // I guess timestamps[0] is a placeholder for now
 	  // ... to prevent an off-by-one error in the if/else statements below
@@ -336,99 +452,34 @@
 	  //var timestamps = [[0, 0]];
 
 	  // The currentTime property returns the current position of the audio/video playback
-	  document.getElementById("demo").innerHTML = UserVideo.currentTime;
+	  //document.getElementById("demo").innerHTML = UserVideo.currentTime;
 
 	  readable_timestamps = JSON.stringify(timestamps);
 	  document.getElementById("user_timestamps").innerHTML = readable_timestamps;
+	  document.getElementById("edit_length").innerHTML = get_edit_length(timestamps);
 
 	  // must ensure that the values in "timestamps" are strictly increasing.
 	  // check each point in 'timestamps'
 	  for (var point_index = 1; point_index < timestamps.length-1; point_index++) {
-		if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-			UserVideo.currentTime = timestamps[point_index][0];
-		}
-		else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-			UserVideo.currentTime = timestamps[point_index+1][0];
-		}
+	  	// 
+			if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+				UserVideo.currentTime = timestamps[point_index][0];
+			}
+			// go to next point
+			else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+				UserVideo.currentTime = timestamps[point_index+1][0];
+			}
 
-		// pause (or maybe loop?) after last point in the video.
-		/*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
-		  UserVideo.pause();
-		}*/
+			// pause (or maybe loop?) after last point in the video.
+			/*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
+			  pause_video();
+			}*/
 	  }
-
-	  /*if (UserVideo.currentTime < timestamps[0][0]) {
-		  UserVideo.currentTime = timestamps[0][0];
-	  }
-
-	  if (UserVideo.currentTime >= timestamps[0][1] && UserVideo.currentTime < timestamps[1][0]) {
-		  UserVideo.currentTime = timestamps[1][0];
-	  }*/
-
-	  /*if (UserVideo.currentTime >= timestamps[1][1] && UserVideo.currentTime < timestamps[2][0]) {
-		  UserVideo.currentTime = timestamps[2][0];
-	  }
-
-	  if (UserVideo.currentTime >= timestamps[2][1]) {
-		  UserVideo.pause();
-	  }*/
-
   }
 
-  function PlayVideo(video,but,rate) {
-	//if (video.currentTime > 1) GotoPos(video, 14);
-	if(video.paused) video.play(); 
-	video.playbackRate = rate; 
-	ratedelta = rate - video.playbackRate;
-	if(!(but.id in savedicon)) savedicon[but.id] = but.value;
-	but.value = String.fromCharCode('0x25AE','0x25AE');
+  // Run play_edit() this many times? -> https://stackoverflow.com/questions/12325787/setting-the-granularity-of-the-html5-audio-event-timeupdate
+  UserVideo.addEventListener("timeupdate", play_edit);
 
-  }
-
-  function FrameStep(video,but,step) {
-	video.currentTime =  video.currentTime + step;
-	UpdateTime(video);
-  }
-
-  function RewindVideo(video) {
-	video.pause();
-	video.currentTime =  0;
-	UpdateTime(video);
-  }
-
-  function UpdateTime(video) {
-	videopos.value = video.currentTime; CheckForScene(video.currentTime);}
-
-  function GotoPos(video,newpos) {
-	video.currentTime = newpos; CheckForScene(newpos); }
-
-  function SelectScene(video,selector) {
-	minsec = selector.value.split(':');
-	video.currentTime = parseFloat( minsec[0]*60 + minsec[1] );
-	UpdateTime(video);
-	PlayVideo(video,playbutton,1);
-  }
-
-  function Mute(video,but) {
-	video.muted = !video.muted;
-	but.style.color = video.muted ? 'silver' : 'black';
-  }
-
-  function AdjustVolume(video,value) {
-	video.volume = value;
-	VolumeTxt.innerHTML = Math.round(value*100)+'%'
-  }
-
-
-  function toggleFullScreen() {
-	if (!document.fullscreenElement) {
-		document.documentElement.requestFullscreen();
-	} else {
-	  if (document.exitFullscreen) {
-		document.exitFullscreen(); 
-	  }
-	}
-  }
 </script>
 
 

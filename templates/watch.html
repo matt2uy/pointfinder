@@ -433,6 +433,7 @@
 	// timeline variables:
 	currently_dragged = false;
 	timeline_height_factor = 7;
+	timeline_bar_thickness = 5;
 		
 	// Drawing functions ////////////////////////////////
 	// the exterior timeline bar.
@@ -447,13 +448,13 @@
 		
 		ctx3_timeline.fillStyle = 'grey';
 		// top bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom, video_width+10, 5);
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom, video_width+10, timeline_bar_thickness);
 		// bottom bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+(video_height/timeline_height_factor), video_width+10, 5);
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+(video_height/timeline_height_factor), video_width+10, timeline_bar_thickness);
 		// left bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+1, 5, video_height/timeline_height_factor);
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
 		// right bar
-		ctx3_timeline.fillRect(video_location.right, video_location.bottom+1, 5, video_height/timeline_height_factor);
+		ctx3_timeline.fillRect(video_location.right, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
 	}
 
 
@@ -484,12 +485,17 @@
 		if (currently_dragged) {
 			// skip to selected point in the video timeline.
 			// ... (the opposite of 'current_location') -> cursor_location to time in seconds.
-			UserVideo.currentTime = ((cursor_location - video_location.left)/video_width)*UserVideo.duration ;
+
+			// make sure the cursor is "in the box" when "seeking"
+			if ((mouse.x >= video_location.left-timeline_bar_thickness) && (mouse.x <= video_location.left + video_width+timeline_bar_thickness) && (mouse.y >= video_location.bottom) && (mouse.y <= (video_height/timeline_height_factor)+video_location.bottom+timeline_bar_thickness)) {
+				UserVideo.currentTime = ((cursor_location - video_location.left)/video_width)*UserVideo.duration;
+			}
+			
 		}
 		else {
 			ctx4_timeline_cursor.fillStyle = 'black';
 		}
-		ctx4_timeline_cursor.fillRect(cursor_location, video_location.bottom+5, 1, (video_height/timeline_height_factor)-5);
+		ctx4_timeline_cursor.fillRect(cursor_location, video_location.bottom+timeline_bar_thickness, 1, (video_height/timeline_height_factor)-timeline_bar_thickness);
 
 
 
@@ -498,7 +504,7 @@
 		// get the currentTime x.location to scale (AKA convert time in seconds to a position on the timeline)
 		progress_location = ((UserVideo.currentTime / UserVideo.duration) * video_width) + video_location.left;
 		ctx4_timeline_cursor.fillStyle = 'red';
-		ctx4_timeline_cursor.fillRect(progress_location, video_location.bottom+5, 1, (video_height/timeline_height_factor)-5);
+		ctx4_timeline_cursor.fillRect(progress_location, video_location.bottom+timeline_bar_thickness, 1, (video_height/timeline_height_factor)-timeline_bar_thickness);
 
 
 		///////////////////////////////////////////// draw the start and end points

@@ -448,11 +448,11 @@
 		
 		ctx3_timeline.fillStyle = 'grey';
 		// top bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom, video_width+10, timeline_bar_thickness);
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom, video_width+10, timeline_bar_thickness);
 		// bottom bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+(video_height/timeline_height_factor), video_width+10, timeline_bar_thickness);
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom+(video_height/timeline_height_factor), video_width+10, timeline_bar_thickness);
 		// left bar
-		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
 		// right bar
 		ctx3_timeline.fillRect(video_location.right, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
 	}
@@ -463,6 +463,13 @@
 		video_location = UserVideo.getBoundingClientRect();
 		video_width = video_location.right-video_location.left;
 		video_height = video_location.bottom-video_location.top
+
+		//////////////////////// draw the point markers
+		ctx3_timeline.fillStyle = 'blue';
+		// top bar
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom, video_width+10, timeline_bar_thickness);
+
+
 
 		//////////////////////////////////////// draw the timeline cursor (black; mouse) line.
 		// get the cursor location

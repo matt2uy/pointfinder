@@ -144,8 +144,8 @@
   var UserVideo = document.getElementById("UserVideo");
   var frames_per_second = 60
   var frame_length = 1/frames_per_second
-  var timestamps = [[0,0]];
-  // var timestamps = [[0,0],[10659.624991,10677.247378],[10705.653607,10713.585325],[10740.439974,10747.468202],[10774.526869,10781.634575],[10806.361122,10811.59813],[10838.100636,10850.915273],[10916.399675,10926.900285],[10958.368933,10980.987089],[11019.052785,11040.202575],[11075.293328,11095.853087]];
+  //var timestamps = [[0,0]];
+  var timestamps = [[0,0],[11.149499,27.916655],[43.398623,46.770612],[62.854776,77.02182],[86.827509,104.009465],[130.962589,141.039164],[178.583966,185.383525],[199.109151,201.347525],[228.720753,233.360046],[255.042824,263.154518],[273.821519,284.419807],[306.667587,308.677622],[327.682161,332.908469],[347.549757,354.934564],[391.369907,398.595244],[422.3267,430.390473],[445.576999,448.730098],[471.90233,474.317949],[501.60528,509.53292],[530.658722]];
   var time_jump_duration = 5
   var fast_forward_rewind_speed = 5
 
@@ -464,11 +464,30 @@
 		video_width = video_location.right-video_location.left;
 		video_height = video_location.bottom-video_location.top
 
-		//////////////////////// draw the point markers
-		ctx3_timeline.fillStyle = 'blue';
-		// top bar
-		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom, video_width+10, timeline_bar_thickness);
 
+
+		//Display the timeline "cursor"// clear this canvas
+		ctx4_timeline_cursor.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+		//////////////////////// draw the point markers -> note: make this a canvas in between 3 (timeline) and 4 (cursor)?
+		
+	  	for (var point_index = 0; point_index < timestamps.length; point_index++) {
+	  		// alternate bar colours for visibility
+	  		if (point_index % 2 == 0) {
+	  			ctx4_timeline_cursor.fillStyle = '#046380';
+	  		}
+	  		else {
+	  			ctx4_timeline_cursor.fillStyle = '#A7A37E';
+	  		}		
+
+	  		// scale the point timestamps -> position on the timeline first
+			// ooo -> make a function for that -> time_to_timeline_position() {} and timeline_position_to_time() {}
+			start_point_pos = ((timestamps[point_index][0] / UserVideo.duration) * video_width) + video_location.left;
+			end_point_pos = ((timestamps[point_index][1] / UserVideo.duration) * video_width) + video_location.left;
+
+			// "draw" the point on the timeline
+			ctx4_timeline_cursor.fillRect(start_point_pos, video_location.bottom+timeline_bar_thickness, end_point_pos-start_point_pos, video_height/timeline_height_factor-timeline_bar_thickness);
+	  	}
 
 
 		//////////////////////////////////////// draw the timeline cursor (black; mouse) line.
@@ -484,8 +503,6 @@
 		}
 		
 
-		//Display the timeline "cursor"// clear this canvas
-		ctx4_timeline_cursor.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
 		// "timeline cursor" bar.
 		// "currently dragged" behaviour -> select an element?
@@ -609,7 +626,10 @@
 
   		// though, do a running tally of the current point.
   		else {
-  			edit_length += (UserVideo.currentTime - timestamps[timestamps.length-1][0])
+  			if (UserVideo.currentTime >= timestamps[timestamps.length-1][0]) {
+  				edit_length += (UserVideo.currentTime - timestamps[timestamps.length-1][0])
+  			}
+  			
   		}
   	}
   

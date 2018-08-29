@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test5</title>
+	<!-- style for the canvas -->
+	<style type="text/css">
+		canvas {
+			border: 1px solid black;
+		}
+		body {
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas class="canvas" id="canvas1"></canvas>
+	<canvas class="canvas" id="canvas2"></canvas>
+</body>
+</html>
+
+<script type="text/javascript">
+	var canvas = document.querySelector('canvas'); // find a <canvas>
+
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+
+	var ctx = canvas.getContext('2d');
+
+	// draw stuff on the canvas
+	// note: what if there are multiple canvases?
+	/*// rectangle
+	ctx.fillStyle = 'green';
+	ctx.fillRect(100, 100, 100, 100);
+	ctx.fillStyle = 'grey';
+	ctx.fillRect(400, 200, 100, 100);
+	ctx.fillStyle = 'blue';
+	ctx.fillRect(300, 100, 100, 100);
+
+	// line
+	ctx.beginPath(); // I guess this "gets the ruler ready"?
+	ctx.moveTo(50, 300); // start line here
+	ctx.lineTo(500, 20); // next end point
+	ctx.strokeStyle = 'red'; // colour for lines only? must do "c.stroke()" below to change the colour "mid-line"
+	ctx.stroke(); // "draw" it
+	ctx.lineTo(100, 200);
+	ctx.lineTo(200, 5);
+	ctx.strokeStyle = 'grey'; // colour for lines only?
+	ctx.stroke(); // "draw" it
+
+	// arc/circle
+	ctx.beginPath();
+	ctx.arc(300, 300, 30, 0, Math.PI*2, false);
+	ctx.strokeStyle = 'blue';
+	ctx.stroke();
+
+	
+
+	for (var i = 0; i < 3; i++) {
+		// randomize
+		var x = Math.random() * window.innerWidth;
+		var y = Math.random() * window.innerHeight;
+		// arc
+		ctx.beginPath();
+		ctx.arc(x, y, 30, 0, Math.PI*2, false);
+		ctx.strokeStyle = 'blue';
+		ctx.stroke();
+	}*/
+
+	// ohhh an object!
+	var mouse = {
+		x: undefined,
+		y: undefined
+	} 
+	
+	// move around
+	// location
+	var x = Math.random() * innerWidth;
+	var y = Math.random() * innerHeight;
+	var radius = 30;
+
+	function user_moves_rectangle(currently_dragged) {
+
+
+		if (currently_dragged) {
+			requestAnimationFrame(user_moves_rectangle);
+			ctx.clearRect(0, 0, innerWidth, innerHeight);
+			ctx.beginPath();
+			ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+			ctx.strokeStyle = 'blue';
+			ctx.stroke();
+			x = mouse.x;
+			y = mouse.y;
+				// "timeline" bar.
+		ctx.fillStyle = 'red';
+		ctx.fillRect(x, innerHeight/2, 2, 50);
+		}
+	}
+
+	// event listener
+	// new mouse location
+	window.addEventListener('mousemove', function(event)
+	{
+		mouse.x = event.x
+		mouse.y = event.y
+		console.log(mouse);
+	})
+
+	// mouse click and hold
+	var mouseIsDown = false;
+
+	window.addEventListener('mousedown', function() {
+	  mouseIsDown = true;
+	  setTimeout(function() {
+	    if(mouseIsDown) {
+	      console.log('hold');
+	      user_moves_rectangle(true);
+	    }
+	  });
+	});
+
+	window.addEventListener('mouseup', function() {
+	  mouseIsDown = false;
+	  console.log('release');
+	      user_moves_rectangle(false);
+	});
+
+
+
+
+</script>

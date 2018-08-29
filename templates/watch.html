@@ -1,10 +1,51 @@
 {% extends "layout.html" %}
 {% block body %}
 
+<style>
+.overlay {
+	  height: 10%;
+	  width: 20%;
+	  position: absolute;
+	  bottom: 20%;
+	  left: 5%;
+	  z-index: 2;
+	  background: white;
+	  opacity: 0.35;
+  }
+
+	table {
+		font-size:2vw;
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+	}
+
+	td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 1px;
+	}
+
+	.canvas{
+	   width:100%;
+	   height:100%;
+	   position:absolute; /* change */
+	   left: 0; 
+	   top: 0;
+	   border: 1px solid black;
+		}
+</style>
 
 
+<body>
 <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+	 	<canvas class="canvas" id="canvas1_baseui"></canvas>
+		<canvas class="canvas" id="canvas2_video"></canvas>
+		<canvas class="canvas" id="canvas3_timeline"></canvas>
+		<canvas class="canvas" id="canvas4_timeline_cursor"></canvas>
 	<div class="container">
+
+
 		<div class="col-md-12">
 	  
 		  <input multiple id="choose_file" type="file" accept="video/*"/>
@@ -13,33 +54,9 @@
 		  	<div>Edit Length: <span id="edit_length"></span></div>
 		  	<div id="message"></div>
 		 	</font>
-			
-		  <style>
-		  .overlay {
-				  height: 10%;
-				  width: 20%;
-				  position: absolute;
-				  bottom: 20%;
-				  left: 5%;
-				  z-index: 2;
-				  background: white;
-				  opacity: 0.35;
-			  }
 
-				table {
-						font-size:2vw;
-				    font-family: arial, sans-serif;
-				    border-collapse: collapse;
-				    width: 100%;
-				}
 
-				td, th {
 
-				    border: 1px solid #dddddd;
-				    text-align: left;
-				    padding: 1px;
-				}
-			</style>
 
 		  <!-- Could be the scoreboard? -->
 		  <div class="overlay">
@@ -63,18 +80,18 @@
 		  <video width="100%" id="UserVideo" autoplay ontimeupdate='play_edit(this)'></video>
 
 			<!-- Progress/seek bar? -->
-			<div class="progress">
+<!-- 			<div class="progress">
 			  <div class="progress-bar" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
 			  <div class="progress-bar bg-success" role="progressbar" style="width: 30%" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
 			  <div class="progress-bar bg-info" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
-			</div>
+			</div> -->
 
 			<!-- a bunch of buttons -->
       <div class="row">
         <div class="col-md-12">
 		   		<div class="form group">
 
-			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+<!-- 			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
 						  <div class="btn-group mr-1" role="group" aria-label="First group">
 						    <button type="button" class="btn btn-secondary mr-1" onclick="skip_to_start();">|<-</button>
 						    <button type="button" class="btn btn-secondary mr-1" onclick="fast_rewind();"><<<</button>
@@ -101,7 +118,7 @@
 						    <button type="button" class="btn btn-secondary" onclick="add_timestamp('end_of_point');">]</button>
 						  </div>
 						</div>
-
+ -->
 
 
 
@@ -116,7 +133,7 @@
 	<!-- /.container -->
 
 </form>
-
+</body>
 
 
 
@@ -124,10 +141,11 @@
 <script type="text/javascript">
   
   // Video variables
-  //var UserVideo = document.getElementById("UserVideo");
+  var UserVideo = document.getElementById("UserVideo");
   var frames_per_second = 60
   var frame_length = 1/frames_per_second
-  var timestamps = [[0,0],[10659.624991,10677.247378],[10705.653607,10713.585325],[10740.439974,10747.468202],[10774.526869,10781.634575],[10806.361122,10811.59813],[10838.100636,10850.915273],[10916.399675,10926.900285],[10958.368933,10980.987089],[11019.052785,11040.202575],[11075.293328,11095.853087]];
+  var timestamps = [[0,0]];
+  // var timestamps = [[0,0],[10659.624991,10677.247378],[10705.653607,10713.585325],[10740.439974,10747.468202],[10774.526869,10781.634575],[10806.361122,10811.59813],[10838.100636,10850.915273],[10916.399675,10926.900285],[10958.368933,10980.987089],[11019.052785,11040.202575],[11075.293328,11095.853087]];
   var time_jump_duration = 5
   var fast_forward_rewind_speed = 5
 
@@ -373,11 +391,169 @@
   
   
   
+  ///////////////////////////////
+  ////////////////////////////////
+  /////////////////////////////////
+  // UI
+  ////////////////////////
+  /////////////////////////////
+  ////////////////////////////////
+
+	// introduce each canvas
+	var canvas1_baseui = document.getElementById('canvas1_baseui');
+	var canvas2_video = document.getElementById('canvas2_video');
+	var canvas3_timeline = document.getElementById('canvas3_timeline');
+	var canvas4_timeline_cursor = document.getElementById('canvas4_timeline_cursor');
+
+	// set the play area for each canvas (for loop? for an array of canvases?)
+	canvas1_baseui.width = window.innerWidth;
+	canvas1_baseui.height = window.innerHeight;
+	
+	canvas2_video.width = window.innerWidth;
+	canvas2_video.height = window.innerHeight;
+	
+	canvas3_timeline.width = window.innerWidth;
+	canvas3_timeline.height = window.innerHeight;
+	
+	canvas4_timeline_cursor.width = window.innerWidth;
+	canvas4_timeline_cursor.height = window.innerHeight;
+
+	// set the "context" for each canvas
+	var ctx1_baseui = canvas1_baseui.getContext('2d');
+	var ctx2_video = canvas2_video.getContext('2d');
+	var ctx3_timeline = canvas3_timeline.getContext('2d');
+	var ctx4_timeline_cursor = canvas4_timeline_cursor.getContext('2d');
+
+	// mouse object
+	var mouse = {
+		x: undefined,
+		y: undefined
+	} 
+
+	// timeline variables:
+	currently_dragged = false;
+	timeline_height_factor = 7;
+		
+	// Drawing functions ////////////////////////////////
+	// the exterior timeline bar.
+	function draw_timeline_bar() {
+		// update video location variables (maybe call this on video resizes only)
+		video_location = UserVideo.getBoundingClientRect();
+		video_width = video_location.right-video_location.left
+		video_height = video_location.bottom-video_location.top
+
+		// clear this canvas
+		ctx3_timeline.clearRect(0, 0, window.innerWidth, window.innerHeight);
+		
+		ctx3_timeline.fillStyle = 'grey';
+		// top bar
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom, video_width+10, 5);
+		// bottom bar
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+(video_height/timeline_height_factor), video_width+10, 5);
+		// left bar
+		ctx3_timeline.fillRect(video_location.left-5, video_location.bottom+1, 5, video_height/timeline_height_factor);
+		// right bar
+		ctx3_timeline.fillRect(video_location.right, video_location.bottom+1, 5, video_height/timeline_height_factor);
+	}
+
+
+	function draw_timeline_cursor() {
+		// update video location (maybe call this on video resizes only)
+		video_location = UserVideo.getBoundingClientRect();
+		video_width = video_location.right-video_location.left;
+		video_height = video_location.bottom-video_location.top
+
+		//////////////////////////////////////// draw the timeline cursor (black; mouse) line.
+		// get the cursor location
+		if (mouse.x < video_location.left) {
+			cursor_location = video_location.left;
+		}
+		else if (mouse.x > video_location.left + video_width) {
+			cursor_location = video_location.left + video_width;
+		}
+		else {
+			cursor_location = mouse.x-1;
+		}
+		
+
+		//Display the timeline "cursor"// clear this canvas
+		ctx4_timeline_cursor.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+		// "timeline cursor" bar.
+		// "currently dragged" behaviour -> select an element?
+		if (currently_dragged) {
+			// skip to selected point in the video timeline.
+			// ... (the opposite of 'current_location') -> cursor_location to time in seconds.
+			UserVideo.currentTime = ((cursor_location - video_location.left)/video_width)*UserVideo.duration ;
+		}
+		else {
+			ctx4_timeline_cursor.fillStyle = 'black';
+		}
+		ctx4_timeline_cursor.fillRect(cursor_location, video_location.bottom+5, 1, (video_height/timeline_height_factor)-5);
 
 
 
+		///////////////////////////////////////////// draw the "currentTime" (red) line.
+
+		// get the currentTime x.location to scale (AKA convert time in seconds to a position on the timeline)
+		progress_location = ((UserVideo.currentTime / UserVideo.duration) * video_width) + video_location.left;
+		ctx4_timeline_cursor.fillStyle = 'red';
+		ctx4_timeline_cursor.fillRect(progress_location, video_location.bottom+5, 1, (video_height/timeline_height_factor)-5);
+
+
+		///////////////////////////////////////////// draw the start and end points
+		/*
+		- no gaps
+		- may have to resize/rescale the timeline after each change
+		- may need a "scrolling" timeline (or a timeline zoom in/out) later.
+
+		1. for now: show gaps
+		2. add a keyboard shortcut for "next/previous point" (maybe : and ' keys?)
+		*/
+
+	}
+
+	// event listener
+	// mouse movement behaviour
+	window.addEventListener('mousemove', function(event)
+	{
+		mouse.x = event.x;
+		mouse.y = event.y;
+		draw_timeline_cursor();
+	})
+
+
+	// things to draw at the start:
+	draw_timeline_bar();
+
+	// mouse click and hold behaviour
+	var mouseIsDown = false; // status of mouse click (maybe we could specify left/right click later.)
+
+	window.addEventListener('mousedown', function() {
+	  mouseIsDown = true;
+	  setTimeout(function() {
+	    if (mouseIsDown) {
+	      console.log('hold');
+	      currently_dragged = true;
+	      draw_timeline_cursor();
+	    }
+	  });
+	});
+
+	window.addEventListener('mouseup', function() {
+	  mouseIsDown = false;
+	  console.log('release');
+	  currently_dragged = false;
+	  draw_timeline_cursor();
+	});
+
+
+
+  /////////////////////
+	//////////////////////////////////////////
 	///////// Video editing events //////////// 
-
+	//////////////////////////////////////////////
+	/////////////
 
 
   // add start/end timestamps
@@ -475,10 +651,19 @@
 			  pause_video();
 			}*/
 	  }
+
+	  draw_timeline_bar();
+	  draw_timeline_cursor()
   }
 
   // Run play_edit() this many times? -> https://stackoverflow.com/questions/12325787/setting-the-granularity-of-the-html5-audio-event-timeupdate
   UserVideo.addEventListener("timeupdate", play_edit);
+
+
+
+
+
+
 
 </script>
 

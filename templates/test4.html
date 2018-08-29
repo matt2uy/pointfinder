@@ -1,22 +1,32 @@
-<!-- A canvas -->
-<canvas id="screen" width="1280" height="720"></canvas>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>test4 - a canvas with seamless video source swaps</title>
+</head>
+<body>
 
-<!-- A collection of video sources -->
-<!-- will need to "import" multiple local videos and play them somehow -->
-<video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid0.mp4" id="video0" width="1280" height="720" hidden></video>
+  <!-- A canvas -->
+  <canvas id="screen" width="1280" height="720"></canvas>
 
-<video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid1.mp4" id="video1" width="1280" height="720" hidden></video>
+  <!-- A collection of video sources -->
+  <!-- will need to "import" multiple local videos and play them somehow -->
+  <video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid0.mp4" id="video0" width="1280" height="720" hidden></video>
 
-<video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid2.mp4" id="video2" width="1280" height="720" hidden></video>
+  <video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid1.mp4" id="video1" width="1280" height="720" hidden></video>
 
-<!-- The controls -->
-<div>
-  <button id="play-pause">Play</button>
-  <button id="stop">Stop</button>
-  <input  id="position" type="range" min="0" max="100" value="0" step="1" style="width:50%" />
+  <video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid2.mp4" id="video2" width="1280" height="720" hidden></video>
+
+  <!-- The controls -->
+  <div>
+    <button id="play-pause">Play</button>
+    <button id="stop">Stop</button>
+    <input  id="position" type="range" min="0" max="100" value="0" step="1" style="width:50%" />
+  </div>
+
+</body>
+</html>
 
 
-</div>
 
 
 
@@ -145,7 +155,7 @@
             video.addEventListener('loadeddata', onLoadedData(video))
           })
 
-          
+
           // "preload" the other videos?
 
           for (i=1; i<videos.length; i++) {

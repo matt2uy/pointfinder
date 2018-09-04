@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>test4 - a canvas with seamless video source swaps</title>
-</head>
 <body>
-
   <!-- A canvas -->
-  <canvas id="screen" width="1280" height="720"></canvas>
+  <canvas id="video_preview" width="1280" height="720"></canvas>
 
   <!-- A collection of video sources -->
   <!-- will need to "import" multiple local videos and play them somehow -->
@@ -15,153 +9,99 @@
   <video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid1.mp4" id="video1" width="1280" height="720" hidden></video>
 
   <video src="C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/auto_generated_files/newvid2.mp4" id="video2" width="1280" height="720" hidden></video>
-
-  <!-- The controls -->
-  <div>
-    <button id="play-pause">Play</button>
-    <button id="stop">Stop</button>
-    <input  id="position" type="range" min="0" max="100" value="0" step="1" style="width:50%" />
-  </div>
-
 </body>
-</html>
 
 
+<script>
+  var video_preview = document.getElementById('video_preview')
+  var ctx = video_preview.getContext("2d")
+  //
+  var video0 = document.getElementById('video0')
+  var video1 = document.getElementById('video1')
+  var video2 = document.getElementById('video2')
+  var videos = [video0, video1, video2]
+  var currentVideoId = 0
+  var renderTimerId
+  var isPlaying = false
+
+  function onLoadedData(video) {
+    return function() {
+      videos[0].removeEventListener('loadeddata', onLoadedData)
+      if (video.id === 'video0') {
+        ctx.drawImage(videos[0], 0, 0, 640, 360)
+      }
+    }
+  }
+
+  function onVideoEnd() {
+    // go to next video
+    if (currentVideoId < videos.length) {
+      currentVideoId++
+    } 
+
+    window.clearInterval(renderTimerId)
+
+    if (currentVideoId === videos.length) {
+      // in case of last video, make sure to load 1st video so that it would start from the 1st frame 
+      videos[0].load()
+      // play from the start again? onLoadedData(videos[0])
+    } 
+    else {
+      videos[currentVideoId].play()
+    }
+  }
 
 
+  function onPlayPause() {
+    window.clearInterval(renderTimerId)
+    if (isPlaying) {
+      videos[currentVideoId].pause()
+    } 
+    else {
+      videos[currentVideoId].play()
+    }
+    isPlaying = !isPlaying // ooh
+  }
 
-        <script>
-          var screen = document.getElementById('screen')
-          var ctx = screen.getContext("2d")
-          // use this "canvas" stuff instead of a png overlay? or nah?
-          //
-          ctx.font="30px Georgia"
-          ctx.fillStyle = 'white'
-          ctx.strokeStyle = 'black'
-          ctx.miterLimit = 2
-          ctx.lineJoin = 'circle'
-          ctx.lineWidth = 1
-          //
-          var video0 = document.getElementById('video0')
-          var video1 = document.getElementById('video1')
-          var video2 = document.getElementById('video2')
-          var videos = [video0, video1, video2]
-          var playPause = document.getElementById('play-pause')
-          var currentVideoId = 0
-          var renderTimerId
-          var totalDuration = null
-          var playLock = false // Prevents errors when the asynchronous play call isn't resolved yet, but you try to pause it. 
-          var isPlaying = false
-
-          function stopTimer() {
-            window.clearInterval(renderTimerId)
-          }
-
-          function drawFrame(video) {
-            var text = 'Section ' + (currentVideoId + 1)
-            ctx.drawImage(video, 0, 0, 640, 360)
-            ctx.strokeText(text, 10, 50)
-            ctx.fillText(text, 10, 50)
-          }
-
-          function onLoadedData(video) {
-            return function() {
-              videos[0].removeEventListener('loadeddata', onLoadedData)
-              totalDuration += video.duration
-              if (video.id === 'video0') {
-                drawFrame(videos[0])
-              }
-            }
-          }
-
-          function onVideoEnd() {
-            // go to next video
-            if (currentVideoId < videos.length) {
-              currentVideoId++
-            } 
-
-            stopTimer()
-
-            if (currentVideoId === videos.length) {
-              // in case of last video, make sure to load 1st video so that it would start from the 1st frame 
-              videos[0].load()
-            } else {
-              videos[currentVideoId].play()
-            }
-          }
+  // play/pause on click
+  video_preview.addEventListener('click', onPlayPause)
 
 
-          function onPlayPause() {
-            stopTimer()
-            if (isPlaying) {
-              videos[currentVideoId].pause()
-              playPause.innerHTML = 'Play'
-            } else {
-              videos[currentVideoId].play()
-              playPause.innerHTML = 'Pause'
-            }
-            isPlaying = !isPlaying
-          }
+  // traverse each video?
+  function play_videos_in_sequence() {
+    videos.forEach((video) => {
+      console.log("looking at "+video.id)
 
+      // while a video is playing
+      video.addEventListener('play', () => {
+        //console.log("currently playing "+video.id)
+        renderTimerId = window.setInterval(() => {
 
-          document.getElementById('stop').addEventListener('click', () => {
-            stopTimer()
-            videos[currentVideoId].pause()
-            videos[currentVideoId].currentTime = 0
-            currentVideoId = 0
-            videos[currentVideoId].load()
-            window.setInterval(() => {
-              drawFrame(videos[currentVideoId])
-            }, 500)
-          })
+          console.log("renderTimerId: ", renderTimerId)
+          ctx.drawImage(video, 0, 0, 640, 360)
 
-          screen.addEventListener('click', onPlayPause)
-          playPause.addEventListener('click', onPlayPause)
+          // // ooh. "totalCurrentTime"?
+          // var totalCurrentTime = 0;
+          // for (var i = 0; i < currentVideoId; ++i) {
+          //   totalCurrentTime += videos[currentVideoId].duration
+          // }
+          // totalCurrentTime += videos[currentVideoId].currentTime
+        }, 30) // what is the '30' for?
 
-          position.addEventListener('input', () => {
-            if (!playLock) {
-              var newTime = totalDuration * position.value / 100
-              var newVideo = 0
-              while (newTime - videos[newVideo].duration > 0) {
-                newTime -= videos[newVideo].duration
-                ++newVideo
-              }
-              stopTimer()
-              videos[currentVideoId].pause()
-              videos[currentVideoId].currentTime = 0
-              currentVideoId = newVideo
-              videos[currentVideoId].currentTime = newTime
-              playLock = true
-              videos[currentVideoId].play().then(() => {
-                playLock = false
-              })
-            }
-          })
+      })
 
+      video.addEventListener('ended', onVideoEnd)
+      video.addEventListener('loadeddata', onLoadedData(video))
 
-          videos.forEach((video) => {
-            video.addEventListener('play', () => {
-              renderTimerId = window.setInterval(() => {
-                drawFrame(video)
-                var totalCurrentTime = 0;
-                for (var i = 0; i < currentVideoId; ++i) {
-                  totalCurrentTime += videos[currentVideoId].duration
-                }
-                totalCurrentTime += videos[currentVideoId].currentTime
-                position.value = totalCurrentTime / totalDuration * 100 >> 0 // Current total position in percentage truncated to integer
-              }, 30)
-            })
-            video.addEventListener('ended', onVideoEnd)
-            video.addEventListener('loadeddata', onLoadedData(video))
-          })
+    })
+  }
 
+  play_videos_in_sequence();
 
-          // "preload" the other videos?
-
-          for (i=1; i<videos.length; i++) {
-            // should all videos be loaded now? 
-            // what if there are 100 of them?
-            videos[i].load()
-          }
-        </script>
+  // "preload" the other videos?
+  for (i=1; i<videos.length; i++) {
+    // should all videos be loaded now? what if there are 100's of them?
+    videos[i].load()
+  }
+</script>
 

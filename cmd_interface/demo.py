@@ -70,7 +70,6 @@ def trim_video(start_time, end_time, new_file_path, source_file_path):
 		trimmed_video = video.subclip(start_time)
 	else:
 		trimmed_video = video.subclip(start_time, end_time)
-
 	trimmed_video.write_videofile(new_file_path, codec='libx264') # codec is a default?
  
 # note: is specifying the parameter type for only one function "inconsistent"?
@@ -637,8 +636,7 @@ if __name__ == '__main__':
 	print ("Video traversal took about", elapsed, "seconds.")'''
 
 	# the algorithm produces margins that are slightly off, so I manually added some for now
-	#point_timestamps = [[11.149499,27.916655],[43.398623,46.770612],[62.854776,77.02182],[86.827509,104.009465],[130.962589,141.039164],[178.583966,185.383525],[199.109151,201.347525],[228.720753,233.360046],[255.042824,263.154518],[273.821519,284.419807],[306.667587,308.677622],[327.682161,332.908469],[347.549757,354.934564],[391.369907,398.595244],[422.3267,430.390473],[445.576999,448.730098],[471.90233,474.317949],[501.60528,509.53292],[530.658722]]
+	point_timestamps = [[11.149499,27.916655],[43.398623,46.770612],[62.854776,77.02182],[86.827509,104.009465],[130.962589,141.039164],[178.583966,185.383525],[199.109151,201.347525],[228.720753,233.360046],[255.042824,263.154518],[273.821519,284.419807],[306.667587,308.677622],[327.682161,332.908469],[347.549757,354.934564],[391.369907,398.595244],[422.3267,430.390473],[445.576999,448.730098],[471.90233,474.317949],[501.60528,509.53292],[530.658722]]
 	# removed the floats -> kind of removed one pause for the last point
-	point_timestamps = [[12-2, 22], [34-2, 39+2], [54-2, 62+2], [82-2, 88+2], [95]]
 	# "C:/Users/matt2/Desktop/Videos/8-18-18 Tennis/GOPR2267.mp4"
 	export_video(point_timestamps, "C:/Users/matt2/Dropbox/Desktop/pointfinder/cmd_interface/source_videos/full_match.mp4")

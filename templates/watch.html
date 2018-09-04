@@ -344,12 +344,70 @@
 		UserVideo.play()
 	}
 
+	function ensure_valid_timestamp() {
+		// Skip the "empty" parts of the video.
+				
+		// must ensure that the values in "timestamps" are strictly increasing.
+		// if the currentTime is "in between" points (aka timestamp[x][0] and timestamp[x][1]) then set currentTime to the next timestamp (so there is seamless playback of the edited match play.)
+		// check each point in 'timestamps'
+
+		for (var point_index = 1; point_index < timestamps.length-1; point_index++) {
+			// if we are -> go to the start of the current point
+			if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+				UserVideo.currentTime = timestamps[point_index][0];
+			}
+			else if (UserVideo.currentTime < timestamps[1][0]) {
+				UserVideo.currentTime = timestamps[1][0];
+			}
+			// if we are past the previous point, but before the next point -> go to the start of the next point
+			else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+				UserVideo.currentTime = timestamps[point_index+1][0];
+			}
+
+			// pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
+			/*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
+				pause_video();
+			}*/
+		}
+
+
+
+		// // check a special case:
+		// // if the first point hasn't started -> go to the start of the first point
+		// if (UserVideo.currentTime < timestamps[1][0]) {
+		// 	UserVideo.currentTime = timestamps[1][0];
+		// }
+
+		// // check the rest of the points in 'timestamps'.
+		// else {
+		// 	found_current_time = false;
+		// 	point_index = 1;
+
+		// 	while (found_current_time === false) {				
+		// 		// if we are ["inside") a point -> go to the start of the next point.
+		// 		if (UserVideo.currentTime > timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
+		// 			found_current_time = true;
+		// 			UserVideo.currentTime = timestamps[point_index + 1][0];
+		// 		}
+
+		// 		// keeping looking? (at the next point)
+		// 		point_index += 1;
+
+		// 		if (point_index >= timestamps.length-1) {
+		// 			found_current_time = true;
+		// 		}
+		// 	}
+		// }
+	}
+
 	function skip_to_start() {
 		UserVideo.currentTime = 0;
+		play_edit();
 	}
 
 	function skip_to_end() {
 		UserVideo.currentTime = UserVideo.duration;
+		play_edit();
 	}
 
 	function fast_forward() {
@@ -386,12 +444,12 @@
 
 	function skip_forward_by_increment() {
 		UserVideo.currentTime += time_jump_duration;
-		//pause_video();
+		play_edit();
 	}
 
 	function skip_backward_by_increment() {
 		UserVideo.currentTime -= time_jump_duration;
-		//pause_video();
+		play_edit();
 	}
 
 	function skip_to_previous_timestamp() {
@@ -400,7 +458,7 @@
 		UserVideo.pause();
 
 		// make sure currentTime is not in "empty space" first.
-		play_edit(UserVideo);
+		play_edit();
 
 		// check start, final point and end cases.
 
@@ -440,17 +498,17 @@
 		}
 
 		// refresh video editor "position"
-		play_edit(UserVideo);
+		play_edit();
 	}
 
 
 	function skip_to_next_timestamp() {
 
 		// pause video when skipping back and forth.
-		UserVideo.pause();
+		//UserVideo.pause();
 
 		// make sure currentTime is not in "empty space" first.
-		play_edit(UserVideo);
+		play_edit();
 
 		// check start, final point and end cases.
 
@@ -490,7 +548,7 @@
 		}
 
 		// refresh video editor "position"
-		play_edit(UserVideo);
+		play_edit();
 	}
 
 
@@ -503,7 +561,6 @@
 		UserVideo.currentTime -= frame_length;
 		pause_video();
 	}
-
 
 
 	
@@ -744,7 +801,7 @@
 	function clear_current_point() {
 		if (timestamps.length > 1) {
 			timestamps = timestamps.slice(0, -1)
-			play_edit(UserVideo)
+			play_edit(UserVideo);
 		}	
 	}
 
@@ -793,34 +850,17 @@
 		return seconds_to_mins_secs(edit_length);
 	}
 
-	function play_edit(UserVideo) {
+	function play_edit() {
 		// I guess timestamps[0] is a placeholder for now
 		// ... to prevent an off-by-one error in the if/else statements below
 		// ... ([previous] point_index would be out of timestamp index.)
 		
 		document.getElementById("user_timestamps").innerHTML = JSON.stringify(timestamps);
 
-		// must ensure that the values in "timestamps" are strictly increasing.
-		// if the currentTime is "in between" points (aka timestamp[x][0] and timestamp[x][1]) then set currentTime to the next timestamp (so there is seamless playback of the edited match play.)
-		// check each point in 'timestamps'
-		for (var point_index = 1; point_index < timestamps.length-1; point_index++) {
-			//
-			if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime < timestamps[point_index][0] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-				UserVideo.currentTime = timestamps[point_index][0];
-			}
-			// go to next point
-			else if (UserVideo.currentTime > timestamps[point_index-1][1] && UserVideo.currentTime >= timestamps[point_index][1] && UserVideo.currentTime < timestamps[point_index+1][0]) {
-				UserVideo.currentTime = timestamps[point_index+1][0];
-			}
-
-			// pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
-			/*if (UserVideo.currentTime > timestamps[timestamps.length-1][1]) {
-				pause_video();
-			}*/
-		}
+		ensure_valid_timestamp();
 
 		draw_timeline_bar();
-		draw_timeline_cursor()
+		draw_timeline_cursor();
 	}
 
 	// Run play_edit() this many times? -> https://stackoverflow.com/questions/12325787/setting-the-granularity-of-the-html5-audio-event-timeupdate

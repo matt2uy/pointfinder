@@ -831,10 +831,6 @@
 		draw_timeline_cursor();
 	})
 
-
-	// things to draw at the start:
-	draw_timeline_bar();
-
 	// mouse click and hold behaviour
 	var mouseIsDown = false; // status of mouse click (maybe we could specify left/right click later.)
 
@@ -946,7 +942,6 @@
 
 		ensure_valid_timestamp();
 
-		draw_timeline_bar();
 		draw_timeline_cursor();
 	}
 
@@ -1032,7 +1027,8 @@
 	// redraw the "video_background" when there is a change on the screen.
 
 	function resize_ui() {
-		draw_timeline_bar();
+
+
 
 		console.log("resize...");
 		///// set up the video frames and wrappers
@@ -1046,6 +1042,9 @@
 		document.getElementById("video_background").style.height = video_height+"px";
 		document.getElementById("video_background").style.width = video_width+"px";
 		console.log(video_height);
+
+				// redraw the timeline bar (to the appropriate size)
+		draw_timeline_bar();
 	}
 
 

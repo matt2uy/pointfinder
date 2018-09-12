@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
 {% block body %}
 
+
+
 <style>
 .overlay {
 		height: 10%;
@@ -34,6 +36,26 @@
 		 top: 0;
 		 border: 1px solid black;
 		}
+
+
+	/*
+	*  position: relative gives a new position context
+	*/
+	#video_structure_wrapper {
+	  position: relative;
+	  overflow: hidden;
+	}
+
+	#video_background {
+	  background-color: black;
+	}
+
+	#video_preview {
+	  position: absolute;
+	  top: 0;
+	  left: 0px;
+	}
+
 </style>
 
 
@@ -47,37 +69,13 @@
 	<div class="container">
 
 
-		<div class="col-md-12">
 		
-			<input multiple id="choose_file" type="file" accept="video/*"/>
-			<font size="1">
-				<div>Start Points: <span id="user_timestamps"></span></div>
-				<div id="message"></div>
-			</font>
 
 
 
 
-			<!-- Could be the scoreboard? -->
-			<div class="overlay">
-				<table border=1 frame=void rules=rows>
-					<tr>
-						<th>Player 1</th>
-						<th>1</th>
-						<th>0</th>
-						<th>40</th>
-					</tr>
-					<tr>
-						<td>Player 2</td>
-						<td>2</td>
-						<td>0</td>
-						<td>15</td>
-					</tr>
-				</table>
-			 </div>
+
 			
-			<!-- Video preview -->
-			<video width="100%" id="UserVideo" autoplay ontimeupdate='play_edit(this)'></video>
 
 			<!-- Progress/seek bar? -->
 <!-- 			<div class="progress">
@@ -88,28 +86,110 @@
 
 			<!-- a bunch of buttons -->
 			<div class="row">
-				<div class="col-md-12">
+
+				<!-- Left side -->
+
+				<div class="col-md-2">
+					<br></br>
+					<input multiple id="choose_file" type="file" accept="video/*"/>
+					<font size="1">
+						<div>Start Points: <span id="user_timestamps"></span></div>
+						<div id="message"></div>
+					</font>
+
+					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Import Files</button>
+
+					<br></br>
+
+		   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="First group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-undo-alt" onclick="rotate_CCW();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-redo-alt" onclick="rotate_CW();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-search-plus" onclick="zoom_in();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-search-minus" onclick="zoom_out();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-left" onclick="translate_left();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-right" onclick="translate_right();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-up" onclick="translate_up();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-down" onclick="translate_down();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1" onclick="reset_frame();">Reset Frame</button>
+						</div>
+					</div>
+
+
+
+				</div>
+
+
+				<!-- Center panel -->
+
+
+				<div class="col-md-8">
 					<div class="form group">
 
-<!-- 			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
-							<div class="btn-group mr-1" role="group" aria-label="First group">
-								<button type="button" class="btn btn-secondary mr-1" onclick="skip_to_start();">|<-</button>
-								<button type="button" class="btn btn-secondary mr-1" onclick="fast_rewind();"><<<</button>
-								<button type="button" class="btn btn-secondary mr-1" onclick="skip_backward_by_increment();">5<-</button>
-								<button type="button" class="btn btn-secondary" onclick="frame_step_backward();"><</button>
-							</div>
-							<div class="btn-group mr-1" role="group" aria-label="Second group">
-								<button type="button" class="btn btn-secondary" onclick="play_pause_video();">Play/Pause</button>
-							</div>
-							<div class="btn-group" role="group" aria-label="Third group">
-								<button type="button" class="btn btn-secondary mr-1" onclick="frame_step_forward();">></button>
-								<button type="button" class="btn btn-secondary mr-1" onclick="skip_forward_by_increment();">->5</button>
-								<button type="button" class="btn btn-secondary mr-1" onclick="fast_forward();">>>></button>
-								<button type="button" class="btn btn-secondary" onclick="skip_to_end();">->|</button>
-							</div>
+
+						<!-- Could be the scoreboard? -->
+							<!-- <div class="overlay">
+							<table border=1 frame=void rules=rows>
+								<tr>
+									<th>Player 1</th>
+									<th>1</th>
+									<th>0</th>
+									<th>40</th>
+								</tr>
+								<tr>
+									<td>Player 2</td>
+									<td>2</td>
+									<td>0</td>
+									<td>15</td>
+								</tr>
+							</table>
+						 </div> -->
+						
+
+
+						<br></br>
+
+
+						<!-- video preview background (black, fixed size) -->
+						<div id="video_structure_wrapper">
+						  <div id="video_background"></div>
+						  <div id="video_preview">
+						  	<!-- Video preview -->
+								<video width="100%" id="UserVideo" autoplay ontimeupdate='play_edit(this)'></video>
+						  </div>
 						</div>
 
 
+						<br></br> 
+						<br></br> 
+
+			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+							<div class="btn-group mr-1" role="group" aria-label="First group">
+								<button type="button" class="btn btn-secondary mr-1 fas fa-caret-square-left" onclick="skip_to_start();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-fast-backward" onclick="fast_rewind();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-reply" onclick="skip_backward_by_increment();"></button>
+								<button type="button" class="btn btn-secondary fas fa-step-backward" onclick="frame_step_backward();"></button>
+							</div>
+							<div class="btn-group mr-1" role="group" aria-label="Second group">
+								<button type="button" class="btn btn-secondary fas fa-play" onclick="play_pause_video();"></button>
+							</div>
+							<div class="btn-group" role="group" aria-label="Third group">
+								<button type="button" class="btn btn-secondary mr-1 fas fa-step-forward" onclick="frame_step_forward();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-share" onclick="skip_forward_by_increment();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-fast-forward" onclick="fast_forward();"></button>
+								<button type="button" class="btn btn-secondary fas fa-caret-square-right" onclick="skip_to_end();"></button>
+							</div>
+						</div>
+
+<!--
 						<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
 							<div class="btn-group mr-1" role="group" aria-label="First group">
 								<button type="button" class="btn btn-secondary mr-1" onclick="go_to_fullscreen();">Full Screen</button>
@@ -125,11 +205,23 @@
 
 					</div>
 				</div>
+
+
+				<!-- Right side -->
+
+				<div class="col-md-2">
+					<br></br>
+					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Export Video</button>
+					<br></br>
+					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Preview Video</button>
+
+				</div>
+
 			</div>
 
 
 
-		</div>
+
 	<!-- /.container -->
 
 </form>
@@ -288,36 +380,36 @@
 
 	(function localFileVideoPlayer() {
 		
-		'use strict'
-		var URL = window.URL || window.webkitURL
+		'use strict';
+		var URL = window.URL || window.webkitURL;
 		
 		var displayMessage = function (message, isError) {
-			var element = document.querySelector('#message')
-			element.innerHTML = message
-			element.className = isError ? 'error' : 'info'
+			var element = document.querySelector('#message');
+			element.innerHTML = message;
+			element.className = isError ? 'error' : 'info';
 		}
 
 		var playSelectedFile = function (event) {
-			var file = this.files[0]
-			var type = file.type
-			var videoNode = document.querySelector('video')
-			var canPlay = videoNode.canPlayType(type)
-			if (canPlay === '') canPlay = 'no'
-			var message = 'Can play type "' + type + '": ' + canPlay + this.files.length
-			var isError = canPlay === 'no'
-			displayMessage(message, isError)
+			var file = this.files[0];
+			var type = file.type;
+			var videoNode = document.querySelector('video');
+			var canPlay = videoNode.canPlayType(type);
+			if (canPlay === '') canPlay = 'no';
+			var message = 'Can play type "' + type + '": ' + canPlay + this.files.length;
+			var isError = canPlay === 'no';
+			displayMessage(message, isError);
 
 			if (isError) {
-			return
+			return;
 			}
 
-			var fileURL = URL.createObjectURL(file)
-			videoNode.src = fileURL
+			var fileURL = URL.createObjectURL(file);
+			videoNode.src = fileURL;
 
 		}
-		var inputNode = document.querySelector('input')
+		var inputNode = document.querySelector('input');
 		// if anything concerning the "input" is modified, then 'playSelectedFile()' is run.
-		inputNode.addEventListener('change', playSelectedFile, false)
+		inputNode.addEventListener('change', playSelectedFile, false);
 	})()
 
 
@@ -341,7 +433,7 @@
 	}
 
 	function play_video() {
-		UserVideo.play()
+		UserVideo.play();
 	}
 
 	function ensure_valid_timestamp() {
@@ -620,7 +712,7 @@
 	// the exterior timeline bar.
 	function draw_timeline_bar() {
 		// update video location variables (maybe call this on video resizes only)
-		video_location = UserVideo.getBoundingClientRect();
+		video_location = document.getElementById("video_background").getBoundingClientRect();
 		video_width = video_location.right-video_location.left
 		video_height = video_location.bottom-video_location.top
 
@@ -641,7 +733,7 @@
 
 	function draw_timeline_cursor() {
 		// update video location (maybe call this on video resizes only)
-		video_location = UserVideo.getBoundingClientRect();
+		video_location = document.getElementById("video_background").getBoundingClientRect();
 		video_width = video_location.right-video_location.left;
 		video_height = video_location.bottom-video_location.top
 
@@ -696,9 +788,6 @@
 				// "seek" to a specific point on the timeline
 				UserVideo.currentTime = ((cursor_location - video_location.left)/video_width)*UserVideo.duration;
 			}
-			
-			ctx4_timeline_cursor.fillRect(cursor_location, video_location.bottom+timeline_bar_thickness, 1, (video_height/timeline_height_factor)-timeline_bar_thickness);
-
 		}
 
 
@@ -753,7 +842,6 @@
 		mouseIsDown = true;
 		setTimeout(function() {
 			if (mouseIsDown) {
-				console.log('hold');
 				currently_dragged = true;
 				draw_timeline_cursor();
 			}
@@ -762,7 +850,6 @@
 
 	window.addEventListener('mouseup', function() {
 		mouseIsDown = false;
-		console.log('release');
 		currently_dragged = false;
 		draw_timeline_cursor();
 	});
@@ -867,6 +954,123 @@
 	UserVideo.addEventListener("timeupdate", play_edit);
 
 
+
+	/////////////////////////////////////////	
+	/////////////////////////////////////////
+	/////////////// Video reframing /////////
+	/////////////////////////////////////////
+	/////////////////////////////////////////
+
+
+
+	// video reframe attributes
+	var zoom = 1; // in percentage
+	var rotation = 0; // in degrees (sure about that?)
+	var translate_x = 0; // in pixels
+	var translate_y = 0; // in pixels
+
+	// increments for each user input
+	var zoom_increment = 0.01;
+	var rotation_increment = 0.5;
+	var translate_increment = 5;
+
+	// zoom in/out
+	function zoom_in() {
+		zoom += zoom_increment;
+		redraw_frame();
+	}
+	function zoom_out() {
+		zoom -= zoom_increment;
+		redraw_frame();
+	}
+	// rotate CW/CCW
+	function rotate_CW() {
+		rotation += rotation_increment;
+		redraw_frame();
+	}
+	function rotate_CCW() {
+		rotation -= rotation_increment;
+		redraw_frame();
+	}
+	// translate left/right
+	function translate_left() {
+		translate_x -= translate_increment;
+		redraw_frame();
+	}
+	function translate_right() {
+		translate_x += translate_increment;
+		redraw_frame();
+	}
+	// translate up/down
+	function translate_up() {
+		translate_y -= translate_increment;
+		redraw_frame();
+	}
+	function translate_down() {
+		translate_y += translate_increment;
+		redraw_frame();
+	}
+	function reset_frame() {
+		zoom = 1;
+	  rotation = 0;
+	  translate_x = 0;
+	  translate_y = 0;
+		redraw_frame();
+	}
+
+	// redraw the frame on the screen with the updated positioning.
+	function redraw_frame() {
+		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"px) translateY("+translate_y+"px) rotate("+rotation+"deg) scale("+zoom+")";
+	}
+
+
+
+
+
+
+
+	// redraw the "video_background" when there is a change on the screen.
+
+	function resize_ui() {
+		draw_timeline_bar();
+
+		console.log("resize...");
+		///// set up the video frames and wrappers
+		// call this only when the first video is called, or when the browser is resized.
+
+		// update video location variables (maybe call this on video resizes only)
+		video_location = document.getElementById("UserVideo").getBoundingClientRect();
+		video_width = video_location.right-video_location.left
+		video_height = video_location.bottom-video_location.top
+		
+		document.getElementById("video_background").style.height = video_height+"px";
+		document.getElementById("video_background").style.width = video_width+"px";
+		console.log(video_height);
+	}
+
+
+	// redraw ui when a video is first played
+	UserVideo.addEventListener("resize", resize_ui);
+
+	// redraw ui when the browser window is resized
+	window.addEventListener("resize", resize_ui);
+
+
+
+
+
+
+	/////////////////////////////////////////	
+	/////////////////////////////////////////
+	/////////////// Video export ////////////
+	/////////////////////////////////////////
+	/////////////////////////////////////////
+
+
+
+	function export_video() {
+
+	}
 
 
 

@@ -43,15 +43,25 @@ def get_video_timestamps():
 def home():
     return render_template('watch.html')
     
-@app.route('/watch', methods=['POST'])
-def add_entry(): 
+@app.route('/edit_video', methods=['POST'])
+def edit_video(): #change to 'watch'
 	##### get the expression from the user-inputted form
 
 	#timestamps = get_video_timestamps()
 
+	timestamps = str(request.form['enter_timestamps_here'])
+
+	print("got the timestamps here:", timestamps)
+
 	return render_template('watch.html')
 
 
+
+# @app.route('/export', methods=['GET'])
+# def export_video():
+# 	reframe_instances = # get these from the user
+
+# 	return # estimated time left
     
     
 if __name__ == '__main__':

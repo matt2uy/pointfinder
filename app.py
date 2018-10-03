@@ -49,7 +49,7 @@ def edit_video(): #change to 'watch'
 
 	#timestamps = get_video_timestamps()
 
-	timestamps = str(request.form['enter_timestamps_here'])
+	timestamps = str(request.data['timestamps'])
 
 	print("got the timestamps here:", timestamps)
 

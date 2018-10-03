@@ -41,7 +41,8 @@ Resources:
 '''
 
 # Video files
-video_path = "source_videos/full_match.mp4" 
+#video_path = "source_videos/full_match.mp4" 
+video_path = "D:/DCIM/100GOPRO/9-18-18 Driving Range"
 
 # opencv video attribute constants
 VIDEO_CAPTURE_WIDTH = 3

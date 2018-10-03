@@ -253,7 +253,7 @@
 	var UserVideo = document.getElementById("UserVideo");
 	var frames_per_second = 60
 	var frame_length = 1/frames_per_second
-	var timestamps = [[0,0]];
+	var timestamps = [[0,0]];//[[0,0],[17.943042,24.315249],[73.830522,89.337048],[186.16423,194.454858],[206.36381,212.50064],[221.823107,231.414884],[384.44891,387.936646]] //
 	//var timestamps = [[0,0],[11.149499,27.916655],[43.398623,46.770612],[62.854776,77.02182],[86.827509,104.009465],[130.962589,141.039164],[178.583966,185.383525],[199.109151,201.347525],[228.720753,233.360046],[255.042824,263.154518],[273.821519,284.419807],[306.667587,308.677622],[327.682161,332.908469],[347.549757,354.934564],[391.369907,398.595244],[422.3267,430.390473],[445.576999,448.730098],[471.90233,474.317949],[501.60528,509.53292],[530.658722]];
 	var time_jump_duration = 5
 	var fast_forward_rewind_speed = 5
@@ -964,7 +964,7 @@
 	// video reframe attributes
 
 	// this format: [[start_time, end_time, zoom, rotation, translate_x, translate_y], [reframe_instance2], [reframe_instance3]];
-	var reframe_instances = [[0, null, 1, 0, 0, 0]];
+	var reframe_instances = [[0, null, 1, 0, 0, 0]];//[[0,17.943042,1,0,0,0],[17.943042,479.594667,1.05,0,0,0]] //[[0, null, 1, 0, 0, 0]];
 
 	var zoom = 1; // in percentage
 	var rotation = 0; // in degrees (sure about that?)
@@ -974,7 +974,7 @@
 	// increments for each user input
 	var zoom_increment = 0.05;
 	var rotation_increment = 0.5;
-	var translate_increment = 5;
+	var translate_increment = 10;
 
 	// video reframing - hud variables
 	var time_to_hud_fade = 0;
@@ -1162,12 +1162,7 @@
 		// for testing: print out the timestamps
 		document.getElementById("user_timestamps").innerHTML = JSON.stringify(timestamps);
 
-		// then print out the reframe instances
-		formatted_reframes = ""
-		for (var i = 0; i < reframe_instances.length; i++) {
-			formatted_reframes += "|\n\n" + Math.round(reframe_instances[i][0]) + ', ' + Math.round(reframe_instances[i][1]) + ', ' + Math.round(reframe_instances[i][2]) + ', ' + Math.round(reframe_instances[i][3]) + ', ' + Math.round(reframe_instances[i][4]) + ', ' + Math.round(reframe_instances[i][5]) + ', ' + "|\n\n";
-		}
-		document.getElementById("video_reframes").innerHTML = formatted_reframes;
+		document.getElementById("video_reframes").innerHTML = JSON.stringify(reframe_instances);
 		
 
 		ensure_valid_timestamp();

@@ -1,32 +1,5 @@
 import subprocess
 
-'''
-Some ffmpeg commands:
-(.mp4 to .avi)
-ffmpeg -i quality_tester.mp4 -crf 23 quality_23.avi
-- maybe use -crf for .mp4 files?
-
-(filters)
-- crop: ffmpeg -i in.mp4 -filter:v "crop=w=640:h=480:x=100:y=200" out.mp4
-	w=width, h=height, x and y are the upper left corner (optional)
-	variable use: w=2/3*in_w, h=2/3*in_h
-
-(scale)
-  syntax: ffmpeg -i in.mp4 -filter:v "scale=w=640:h=480" out.mp4
-  arithmetic/variables: ffmpeg -i in.mp4 -filter:v "scale=w=2/3*in_w:h=2/3*in_h" out.mp4
-  proportional: ffmpeg -i in.mp4 -filter:v "scale=w=in_w:h=-1" out.mp4
-
-(rotate) ffmpeg -i in.mp4 -filter:v "rotate=45*PI/180" out.mp4
-
-(trim) and make a copy: (newer answer) https://stackoverflow.com/questions/18444194/cutting-the-videos-based-on-start-and-end-time-using-ffmpeg
-ffmpeg -i in.mp4 -ss 00:00:53 -to 00:01:03 -c copy out.mp4
-
-(concatenate)
-- try out step 2: https://stackoverflow.com/questions/7333232/how-to-concatenate-two-mp4-files-using-ffmpeg
-
-'''
-
-### Create video clips:
 def split_video():
 	# cut out 2 clips (fast)
 	# subprocess.call("ffmpeg -i sample_video_files/driver_source.mp4 -ss 00:00:01 -to 00:00:02 -c copy sample_video_files/out1.mp4")
@@ -45,3 +18,41 @@ def join_video():
 	# concatenate all videos in clip_list.txt
 	subprocess.call("ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files/output.mp4")
 
+def rotate_clip(source_path, output_path, degrees_cw):
+	subprocess.call('ffmpeg -i ' + source_path + ' -filter:v "rotate=' + str(degrees_cw) + '*PI/180" ' + output_path)
+
+def resize_and_translate_clip(source_path, output_path, scale_factor, translate_x, translate_y):
+
+	'''	scale + move the frame around a bit
+	syntax: crop=height_of_output:width_of_output:left_border:top_border
+	
+	derived an equation to find left/top border: (in_w/h-scale_factor)/2
+	also added translate_x/y (in pixels): translate_x/y + (in_w/h-scale_factor)/2
+		- note: when a 'left_border' or 'right_border' values causes the 
+			frame to go 'out of bounds', ffmpeg keeps the frame 'in bounds'
+			by restricting any further x or y translation.
+
+	docs: http://ffmpeg.org/ffmpeg-filters.html#crop
+	'''
+	subprocess.call('ffmpeg -i ' + source_path + ' -vf "crop=in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=' + str(translate_x) + '+(in_w-in_w*'+str(scale_factor)+')/2:y=' + str(translate_y) + '+(in_h-in_h*'+str(scale_factor)+')/2" ' + output_path)
+
+
+
+
+#rotate_clip("sample_video_files/driver_source.mp4", "sample_video_files/rotated.mp4", 5)
+resize_and_translate_clip("sample_video_files/driver_source.mp4", "sample_video_files/scaled2.mp4", 0.3, -20, 150)
+
+# split_video()
+# join_video()
+
+
+'''
+timestamps
+var timestamps = [[0,0]];
+
+
+reframe instances
+
+// this format: [[start_time, end_time, zoom, rotation, translate_x, translate_y], [reframe_instance2], [reframe_instance3]];
+	var reframe_instances = [[0, null, 1, 0, 0, 0]];//
+'''

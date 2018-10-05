@@ -968,13 +968,13 @@
 
 	var zoom = 1; // in percentage
 	var rotation = 0; // in degrees (sure about that?)
-	var translate_x = 0; // in pixels
-	var translate_y = 0; // in pixels
+	var translate_x = 0; // in percentage
+	var translate_y = 0; // in percentage
 
 	// increments for each user input
 	var zoom_increment = 0.05;
 	var rotation_increment = 0.5;
-	var translate_increment = 10;
+	var translate_increment = 1;
 
 	// video reframing - hud variables
 	var time_to_hud_fade = 0;
@@ -1081,7 +1081,7 @@
 
 
 
-		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"px) translateY("+translate_y+"px) rotate("+rotation+"deg) scale("+zoom+")";
+		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"%) translateY("+translate_y+"%) rotate("+rotation+"deg) scale("+zoom+")";
 
 		//update_hud_status();
 	}
@@ -1103,7 +1103,7 @@
 			if (UserVideo.currentTime > reframe_instances[reframe_index][0] && UserVideo.currentTime < reframe_instances[reframe_index][1]) {
 
 				// write a function for this?
-				document.getElementById("video_preview").style.transform =  "translateX("+reframe_instances[reframe_index][4]+"px) translateY("+reframe_instances[reframe_index][5]+"px) rotate("+reframe_instances[reframe_index][3]+"deg) scale("+reframe_instances[reframe_index][2]+")";
+				document.getElementById("video_preview").style.transform =  "translateX("+reframe_instances[reframe_index][4]+"%) translateY("+reframe_instances[reframe_index][5]+"%) rotate("+reframe_instances[reframe_index][3]+"deg) scale("+reframe_instances[reframe_index][2]+")";
 
 				reframe_index = reframe_instances.length; // stop the for loop tranversal.
 			}

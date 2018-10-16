@@ -14,7 +14,7 @@ app.config.from_object(__name__)
 
 import sys
 sys.path.append('cmd_interface')
-import demo
+#import demo
 
 # spit out "high potential" timestamps from a video
 def get_video_timestamps():

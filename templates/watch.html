@@ -1080,8 +1080,18 @@
 
 
 
-
+		// video frame position.
 		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"%) translateY("+translate_y+"%) rotate("+rotation+"deg) scale("+zoom+")";
+
+		
+		var blur = 0; // 0 px default >0 for more blur.
+		var brightness = 100; // 100% default 0% = black
+		var contrast = 100; // 100% default 0% = black
+		var saturation = 0; // 0% unsat, 100% default
+
+
+		// video color correction.
+		document.getElementById("video_preview").style.filter =  "blur("+blur+"px) "+"brightness("+brightness+"%) "+"contrast("+contrast+"%) "+"saturation("+saturation+"%)";
 
 		//update_hud_status();
 	}

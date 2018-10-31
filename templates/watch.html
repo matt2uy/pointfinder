@@ -99,7 +99,7 @@
 					<br></br>
 					<input multiple id="choose_file" type="file" accept="video/*"/>
 					<font size="1">
-						<div>Start Points: <span id="user_video_clips"></span></div>
+						<div class="well" id="user_video_clips">Start Points: </div>
 						<div id="message"></div>
 					</font>
 
@@ -243,9 +243,10 @@
 <script type="text/javascript">
 
 	// Video variables
+	var file; // temp (awaiting multi-file support)
 	var UserVideo = document.getElementById("UserVideo");
-	var frames_per_second = 60
-	var frame_length = 1/frames_per_second
+	var frames_per_second = 60;
+	var frame_length = 1/frames_per_second;
 
 	// should be like a "prototype"
 	var video_clip_template = {
@@ -261,9 +262,9 @@
 
 	var video_clips = [];
 
-	var time_jump_duration = 5
-	var fast_forward_rewind_speed = 5
-	var slow_forward_rewind_speed = 0.2
+	var time_jump_duration = 5;
+	var fast_forward_rewind_speed = 5;
+	var slow_forward_rewind_speed = 0.2;
 
 	///////// keypresses.../////////////////////
 
@@ -418,7 +419,7 @@
 		}
 
 		var playSelectedFile = function (event) {
-			var file = this.files[0];
+			file = this.files[0]; // a global variable? (will be fixed when multi-file support is implemented)
 			var type = file.type;
 			var videoNode = document.querySelector('video');
 			var canPlay = videoNode.canPlayType(type);
@@ -433,6 +434,8 @@
 
 			var fileURL = URL.createObjectURL(file);
 			videoNode.src = fileURL;
+
+
 
 		}
 		var inputNode = document.querySelector('input');
@@ -840,6 +843,7 @@
 			// Start off with a clean slate for the first one.
 			if (video_clips.length === 0) {
 				video_clips.push({
+					filename: file.name, 
 					start_time: UserVideo.currentTime,
 					end_time: UserVideo.currentTime,
 					trim_complete: false,
@@ -863,6 +867,7 @@
 				else if (video_clips[video_clips.length-1].end_time != video_clips[video_clips.length-1].start_time) {
 
 					video_clips.push({
+						filename: file.name,
 						start_time: UserVideo.currentTime,
 						end_time: UserVideo.currentTime,
 						trim_complete: false,
@@ -1116,7 +1121,7 @@
 				}
 			}
 			// 1. if we are -> go to the start of the current point.
-			if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
 				UserVideo.currentTime = video_clips[point_index].start_time;
 			}
 

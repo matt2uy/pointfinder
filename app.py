@@ -49,9 +49,11 @@ def edit_video(): #change to 'watch'
 
 	#timestamps = get_video_timestamps()
 
-	timestamps = str(request.data['timestamps'])
+	##timestamps = request.data['user_video_clips']
+	letters = str(request.form['export_data'])
+	print(letters)
 
-	print("got the timestamps here:", timestamps)
+	#print("got the timestamps here:", timestamps)
 
 	return render_template('watch.html')
 

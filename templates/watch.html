@@ -99,7 +99,7 @@
 					<br></br>
 					<input multiple id="choose_file" type="file" accept="video/*"/>
 					<font size="1">
-						<div class="well" id="user_video_clips">Start Points: </div>
+						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clips: " value="none">
 						<div id="message"></div>
 					</font>
 
@@ -220,7 +220,7 @@
 
 				<div class="col-md-2">
 					<br></br>
-					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Export Video</button>
+					<button type="submit" class="btn btn-primary"">Export Video</button>
 					<br></br>
 					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Preview Video</button>
 
@@ -242,6 +242,7 @@
 <!-- keyboard events -->
 <script type="text/javascript">
 
+	
 	// Video variables
 	var file; // temp (awaiting multi-file support)
 	var UserVideo = document.getElementById("UserVideo");
@@ -335,9 +336,9 @@
 		}
 		
 		// a sample diagnostic 'alert' key
-		else if (key === 't' || key === 84 || key === 'KeyT') {
-			alert(JSON.stringify(video_clips));
-		}
+		// else if (key === 't' || key === 84 || key === 'KeyT') {
+		// 	alert(JSON.stringify(video_clips));
+		// }
 
 		// next: go to next start/end timestamp
 
@@ -1242,7 +1243,8 @@
 		// ... ([previous] point_index would be out of timestamp index.)
 		
 		// for testing: print out the video_clips
-		document.getElementById("user_video_clips").innerHTML = JSON.stringify(video_clips);
+		document.getElementById("export_data").value = JSON.stringify(video_clips);
+		//document.getElementById("export_data").value = JSON.stringify({attr1:"m", attr2:1});
 		
 
 		ensure_valid_timestamp();

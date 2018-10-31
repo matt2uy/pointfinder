@@ -526,24 +526,25 @@
 
 		// check start, final point and end cases.
 
-		// if the first point hasn't started yet (or is at the first frame) -> go to the start of the video file.
-		if (UserVideo.currentTime <= video_clips[1].start_time) {
+		// 1. if the first point hasn't started yet (or is at the first frame) -> go to the start of the video file.
+		if (UserVideo.currentTime <= video_clips[0].start_time) {
 			UserVideo.currentTime = 0;
 		}
 
-		// if we are in the final point -> go to the start of the final point.
+		// 2. if we are in the final point -> go to the start of the final point.
 		else if (UserVideo.currentTime > video_clips[video_clips.length-1].start_time && UserVideo.currentTime <= video_clips[video_clips.length-1].end_time) {
 			UserVideo.currentTime = video_clips[video_clips.length-1].start_time;
 		}
 
-		// if the final point has ended -> go to the end of the final point.
+		// 3. if the final point has ended -> go to the end of the final point.
 		else if (UserVideo.currentTime > video_clips[video_clips.length-1].end_time) {
 			UserVideo.currentTime = video_clips[video_clips.length-1].end_time;
 		}
 
+		// 4. go to the start of the previous point.
 		else {
 			found_current_time = false;
-			point_index = 1;
+			point_index = 0;
 
 			while (found_current_time === false) {				
 				// if we are ("inside"] a point or at the first frame of the next point -> go to the start of the current point.
@@ -577,8 +578,8 @@
 		// check start, final point and end cases.
 
 		// if the first point hasn't started yet -> go to the start of the first point.
-		if (UserVideo.currentTime < video_clips[1].start_time) {
-			UserVideo.currentTime = video_clips[1].start_time;
+		if (UserVideo.currentTime < video_clips[0].start_time) {
+			UserVideo.currentTime = video_clips[0].start_time;
 		}
 
 		// if we are in the final point -> go to the end of the final point.
@@ -593,7 +594,7 @@
 
 		else {
 			found_current_time = false;
-			point_index = 1;
+			point_index = 0;
 
 			while (found_current_time === false) {				
 				// if we are ["inside") a point -> go to the start of the next point.
@@ -885,6 +886,9 @@
 			//var old = video_clips[video_clips.length-1].end_time;
 			video_clips[video_clips.length-1].end_time = UserVideo.currentTime;
 			video_clips[video_clips.length-1].trim_complete = true;
+
+			// and while we're at it... redraw the timeline_bar_cursor?
+			play_edit(); // this might be temporary -> maybe run this function after all user inputs in general?
 		}
 
 		// insert the timestamp in the correct timestamp[index]
@@ -1053,19 +1057,23 @@
 		pause_video();
 		
 
-		// make sure that it is time to create a new reframe_instance
-		if (video_clips[video_clips.length-1].start_time != UserVideo.currentTime) {
-			// create a new reframe_instance with new user-inputted values.
-			video_clips.push({
-					filename: video_clips[video_clips.length-1].filename, 
-					start_time: UserVideo.currentTime,
-					end_time: UserVideo.currentTime,
-					scale_factor: zoom, // in % (0.0-1.0)
-					degrees_cw: rotation, // in degrees
-					translate_x: translate_x, // in px
-					translate_y: translate_y // in px
-			});
+		/*// if this is the first video_clip/just finished the last one...
+		if (video_clips.length === 0 || video_clips[video_clips.length-1].trim_complete === true){
+			add_timestamp("start_of_point");
 		}
+		// 
+		else {
+
+		}*/
+		
+		// create a new reframe_instance with new user-inputted values.
+		add_timestamp("start_of_point");
+
+		// make sure that it is time to create a new reframe_instance
+		video_clips[video_clips.length-1].scale_factor = zoom; 
+		video_clips[video_clips.length-1].degrees_cw = rotation;
+		video_clips[video_clips.length-1].translate_x = translate_x;
+		video_clips[video_clips.length-1].translate_y = translate_y;
 
 
 
@@ -1098,26 +1106,33 @@
 		// must ensure that the values in "video_clips" are strictly increasing.
 		// if the currentTime is "in between" points (aka timestamp[x][0] and timestamp[x][1]) then set currentTime to the next timestamp (so there is seamless playback of the edited match play.)
 		// check each point in 'video_clips'
+		for (var point_index = 0; point_index < video_clips.length-1; point_index++) {
 
+			// 0. Special case for first point (don't look at point_index-1 for now)
+			if (point_index === 0) {
+				if (UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
 
-
-
-		for (var point_index = 1; point_index < video_clips.length-1; point_index++) {
-			// if we are -> go to the start of the current point
+					UserVideo.currentTime = video_clips[point_index].start_time;
+				}
+			}
+			// 1. if we are -> go to the start of the current point.
 			if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
 				UserVideo.currentTime = video_clips[point_index].start_time;
 			}
 
-			else if (UserVideo.currentTime < video_clips[1].start_time) {
-				UserVideo.currentTime = video_clips[1].start_time;
+			// 2. Before the 'first' point -> go to the start of the first point.
+			else if (UserVideo.currentTime < video_clips[0].start_time) {
+				UserVideo.currentTime = video_clips[0].start_time;
 			}
 
-			// if we are past the previous point, but before the next point -> go to the start of the next point
+			// 3. Between Points -> go to the start of the next point.
 			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime >= video_clips[point_index].end_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
 				UserVideo.currentTime = video_clips[point_index+1].start_time;
 			}
 
-			// pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
+			// 4. Past all 'video_clips' -> do nothing.
+
+			// 5. Pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
 			/*if (UserVideo.currentTime > video_clips[video_clips.length-1][1]) {
 				pause_video();
 			}*/

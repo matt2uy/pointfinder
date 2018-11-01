@@ -1,6 +1,6 @@
 import subprocess
 
-def split_video(video_clips, source_folder, output_folder): # add parameter: speed? quality?
+def split_video(timestamps, source_folder, output_folder): # add parameter: speed? quality?
 
 	# 0. Fix time format.
 	# convert int time format in 'timestamps' to 'hh:mm:ss:'
@@ -8,11 +8,11 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 	# 	import time
 	# 	timestamp[1] = time.strftime('%H:%M:%S', time.gmtime(timestamp[1]))
 	# 	timestamp[2] = time.strftime('%H:%M:%S', time.gmtime(timestamp[2]))
-	video_clip_paths = []
-	for i in range(len(video_clips)):
+
+	for i in range(len(timestamps)):
 
 		### 1. Assemble the source and output paths.
-		source_path = source_folder + str(video_clips[i]["filename"])
+		source_path = source_folder + str(timestamps[i][0])
 		output_path = output_folder + "trimmed"+str(i)+".mp4"
 		
 
@@ -20,21 +20,21 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 		### 2. trim and export the clip 
 
 		# Slow export ('perfect'(?) cuts and playback)
-		#subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -async 1 ' + output_path)
+		#subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(timestamps[i][1]) + ' -to ' + str(timestamps[i][2]) + ' -async 1 ' + output_path)
 		
 		# Fast export (inaccurate cuts, random jumping) 
-		subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -c copy ' + output_path)
+		subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(timestamps[i][1]) + ' -to ' + str(timestamps[i][2]) + ' -c copy ' + output_path)
 
 
 
 		### 3. "reframe" the clip.
+
 		# Tweak 'reframe' attributes (should we do these calculations from the client side?)
-		video_clips[i]["scale_factor"] = 1/video_clips[i]["scale_factor"]
-		video_clips[i]["degrees_cw"] = -video_clips[i]["degrees_cw"]/100
-		video_clips[i]["translate_y"] = -video_clips[i]["translate_y"]/100
+		timestamps[i][3][2] = 1/timestamps[i][3][2]
+		timestamps[i][3][4] = -timestamps[i][3][4]/100
+		timestamps[i][3][5] = -timestamps[i][3][5]/100
 		# reframing involves exporting a new file (differentiated with a '_reframed' suffix)
-		reframe_clip(output_path, output_path[:-4]+"_reframed"+output_path[-4:], video_clips[i]["scale_factor"], video_clips[i]["degrees_cw"], video_clips[i]["translate_x"], video_clips[i]["translate_y"])
-		
+		reframe_clip(output_path, output_path[:-4]+"_reframed"+output_path[-4:], timestamps[i][3][2], timestamps[i][3][3], timestamps[i][3][4], timestamps[i][3][5])
 		video_clip_paths.append(output_path[:-4]+"_reframed"+output_path[-4:])
 
 		# delete the intermediate (pre-reframe) file
@@ -47,8 +47,6 @@ def join_video(video_clip_paths):
 
 	# add file paths to clip_list.txt in chronological order.
 	clip_list_file = open("sample_video_files\\clip_list.txt","w+")
-
-	print("\n\n\n\n\n joining "+str(video_clip_paths)+"\n\n\n\n\n")
 	
 	for i in range(len(video_clip_paths)):
 		clip_list_file.write("file '" + str(video_clip_paths[i][19:])+"'"+"\n")
@@ -96,32 +94,105 @@ def delete_files(list_of_files):
 		print('deleting', file_path)
 		subprocess.call('del ' + file_path, shell=True)
 
-def export(video_clips):
+if __name__ == '__main__':
+
+	# 1. Gather up the 'timestamps' from the client.
+	timestamps = []
+
+
 
 	#edit 1....#####################################
-#################
-
-	# # 10/12/18
-	# # Video frame settings: [[0,80.953419,1,0,0,0],[80.953419,83.288432,1.05,0,0,0],[83.288432,84.189093,1.8000000000000007,-5,-40,10],[84.189093,null,1.8500000000000008,-5,-40,10]]
-	# temp_segment1 = [["GOPR2326.mp4", 161.466227,175.511756],["GOPR2326.mp4", 193.481382,207.849141],["GOPR2326.mp4", 388.835685,406.281275],["GOPR2326.mp4", 425.615758,434.036654]]
-	# for timestamp in temp_segment1:
-	# 	timestamp.append([84.189093,0,1.8500000000000008,-5,-40,10])
-
-	# timestamps += temp_segment1
 
 
-	# # Video frame settings: [[0,104.223804,1,0,0,0],[104.223804,105.447595,1,-0.5,0,0],[105.447595,106.181362,1.8500000000000008,-9.5,-36,9],[106.181362,null,1.8000000000000007,-9.5,-36,9]]
-	# temp_segment2 = [["GP012326.mp4", 104.223804,108.718032],["GP012326.mp4", 435.093209,449.006654],["GP012326.mp4", 460.02222,470.617283]]
-	# for timestamp in temp_segment2:
-	# 	timestamp.append([106.181362,0,1.8000000000000007,-9.5,-36,9])
+	# 10/12/18
+	# Video frame settings: [[0,80.953419,1,0,0,0],[80.953419,83.288432,1.05,0,0,0],[83.288432,84.189093,1.8000000000000007,-5,-40,10],[84.189093,null,1.8500000000000008,-5,-40,10]]
+	temp_segment1 = [["GOPR2326.mp4", 161.466227,175.511756],["GOPR2326.mp4", 193.481382,207.849141],["GOPR2326.mp4", 388.835685,406.281275],["GOPR2326.mp4", 425.615758,434.036654]]
+	for timestamp in temp_segment1:
+		timestamp.append([84.189093,0,1.8500000000000008,-5,-40,10])
 
-	# timestamps += temp_segment2
+	timestamps += temp_segment1
 
-#####################
+
+	# Video frame settings: [[0,104.223804,1,0,0,0],[104.223804,105.447595,1,-0.5,0,0],[105.447595,106.181362,1.8500000000000008,-9.5,-36,9],[106.181362,null,1.8000000000000007,-9.5,-36,9]]
+	temp_segment2 = [["GP012326.mp4", 104.223804,108.718032],["GP012326.mp4", 435.093209,449.006654],["GP012326.mp4", 460.02222,470.617283]]
+	for timestamp in temp_segment2:
+		timestamp.append([106.181362,0,1.8000000000000007,-9.5,-36,9])
+
+	timestamps += temp_segment2
+
+
+
+
+	#edit 2#####################################
+
+	# # 9/30/18 2.5mins
+
+	# Start Points: [[0,0],[240.053048,252.237701],[259.771077,266.388262],[474.93429,481.632931]]
+	# Video frame settings: [[0,240.053048,1,0,0,0],[240.053048,null,1.05,0,0,0]]
+
+	#edit 3 ###################################
+	#GOPR2330.mp4
+	 [[47.26088,56.227589],[72.620567,82.634407],[211.488545,217.786116],[232.219151,238.497642],[273.794221,277.134785],[297.344729,302.66336],[317.197952,321.425013],[370.669293,378.863889],[455.485985,464.237035],[482.259749,493.568311]]
+Video frame settings: [0,0,1.4000000000000004,-4.5,-21,0]
+Can play type "video/mp4": maybe1
+
+GP012330.mp4
+[[0,0],[14.205457,26.219543],[66.701287,75.374617],[196.80708,203.183831]]
+Video frame settings: 
+
+GP022330.mp4
+: [[0,0],[88.300326,91.725963],[120.131193,124.568342],[134.932153,142.509433]]
+Video frame settings: [[0,2.540332,1,0,0,0],[2.540332,386.485838,1.05,0,0,0],[386.485838,388.377343,1.4500000000000004,-6,-20,14],[388.377343,390.956158,1.4500000000000004,-6,-20,21],[390.956158,null,1.4500000000000004,-6,-20,20]]
+Can play type "video/mp4": maybe1
+
+GP032330.mp4
+ [[0,0],[12.740137,19.324157],[97.563118,107.437755],[236.319476,242.880827],[439.031037,453.26413]]
+
+
+ GP042330.mp4
+ [[0,0],[223.898429,232.019371],[405.799101,427.277771]]
+
+
+ GP062330.mp4
+ [[0,0],[240.294115,257.975342],[317.270735,339.975056],[361.382775,364.545566],[412.530853,425.325298],[453.823032,460.103991]]
+
+
+ GP072330.mp4 lol
+ [[0,0],[240.294115,257.975342],[317.270735,339.975056],[361.382775,364.545566],[412.530853,425.325298],[453.823032,460.103991]]
+
+
+ GP082330.mp4
+
+
+
+ GP092330.mp4
+
+
+
+ GP022330.mp4
+	'''
+	# maybe make a function that consolidates the reframe and timestamps lists.
+	# sketch a few diagrams...
+	for timestamp in timestamps
+		for reframe_instance in reframe_instances:
+			# ensure that the file is correct (try another way to do this as well)
+			if timestamp[0] == reframe_instance[0]: # note: reframe_instance[0] = file path
+				# if timestamp is in a reframe instance: append the reframe instance to the timestamp.
+				if timestamp[1] > reframe_instance[1] and timestamp[2] < reframe_instance[2]:
+					timestamp.append(reframe_instance)
+
+				# elif timestamp is in between two reframe instances: split the timestamp once more? and repeat.
+				elif timestamp[1] > reframe_instance[1] and timestamp[2] > reframe_instance[2]:
+					# split up the timestamp?
+					timestamp.append(reframe_instance)
+				elif timestamp[1] < reframe_instance[1] and timestamp[2] < reframe_instance[2]:
+					# split up the timestamp?
+					timestamp.append(reframe_instance)
+	'''
 
 	# 2. Split the video into clips, then reframe those clips.
 	video_clip_paths = [] # in chronological order.
-	video_clip_paths = split_video(video_clips, "sample_video_files\\", "sample_video_files\\")
+	video_clip_paths = split_video(timestamps, "sample_video_files\\", "sample_video_files\\")
 
 	# 3. Concatenate the clips into one video.
 	join_video(video_clip_paths)

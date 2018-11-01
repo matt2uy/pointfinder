@@ -99,7 +99,7 @@
 					<br></br>
 					<input multiple id="choose_file" type="file" accept="video/*"/>
 					<font size="1">
-						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clips: " value="none">
+						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
 						<div id="message"></div>
 					</font>
 
@@ -848,7 +848,7 @@
 					start_time: UserVideo.currentTime,
 					end_time: UserVideo.currentTime,
 					trim_complete: false,
-					scale_factor: 0, // in % (0.0-1.0)
+					scale_factor: 1, // in % (0.0-1.0)
 					degrees_cw: 0, // in degrees
 					translate_x: 0, // in px
 					translate_y: 0 // in px

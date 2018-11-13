@@ -100,6 +100,7 @@
 					<input multiple id="choose_file" type="file" accept="video/*"/>
 					<font size="1">
 						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
+						<input type="text" name="export_type" id="export_type" class="form-control" placeholder="Export type">
 						<div id="message"></div>
 					</font>
 
@@ -220,7 +221,10 @@
 
 				<div class="col-md-2">
 					<br></br>
-					<button type="submit" class="btn btn-primary"">Export Video</button>
+					<button type="submit" class="btn btn-primary">Export Video</button>
+					<!-- <button type="submit" class="btn btn-primary" onclick="set_export_type('no reframes');">Export Video (no reframes)</button>
+					<button type="submit" class="btn btn-primary" onclick="set_export_type('fast');">Export Video (fast)</button>
+					<button type="submit" class="btn btn-primary" onclick="set_export_type('best');">Export Video (best)</button> -->
 					<br></br>
 					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Preview Video</button>
 
@@ -266,6 +270,8 @@
 	var time_jump_duration = 5;
 	var fast_forward_rewind_speed = 5;
 	var slow_forward_rewind_speed = 0.2;
+
+	var export_setting = "-----";
 
 	///////// keypresses.../////////////////////
 
@@ -631,6 +637,11 @@
 		pause_video();
 	}
 
+	// export settings
+
+	function set_export_type(export_type) {
+		export_setting = export_type;
+	}
 
 	
 
@@ -975,7 +986,7 @@
 	// increments for each user input
 	var zoom_increment = 0.05;
 	var rotation_increment = 0.5;
-	var translate_increment = 1;
+	var translate_increment = 5;
 
 	// video reframing - hud variables
 	var time_to_hud_fade = 0;
@@ -1084,7 +1095,7 @@
 
 
 		// video frame position.
-		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"%) translateY("+translate_y+"%) rotate("+rotation+"deg) scale("+zoom+")";
+		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"px) translateY("+translate_y+"px) rotate("+rotation+"deg) scale("+zoom+")";
 
 		
 		var blur = 0; // 0 px default >0 for more blur.
@@ -1186,7 +1197,7 @@
 			if (UserVideo.currentTime > video_clips[reframe_index].start_time && UserVideo.currentTime < video_clips[reframe_index].end_time) {
 
 				// write a function for this?
-				document.getElementById("video_preview").style.transform =  "translateX("+video_clips[reframe_index].translate_x+"%) translateY("+video_clips[reframe_index].translate_y+"%) rotate("+video_clips[reframe_index].degrees_cw+"deg) scale("+video_clips[reframe_index].scale_factor+")";
+				document.getElementById("video_preview").style.transform =  "translateX("+video_clips[reframe_index].translate_x+"px) translateY("+video_clips[reframe_index].translate_y+"px) rotate("+video_clips[reframe_index].degrees_cw+"deg) scale("+video_clips[reframe_index].scale_factor+")";
 
 				reframe_index = video_clips.length; // stop the for loop tranversal.
 			}
@@ -1244,6 +1255,8 @@
 		
 		// for testing: print out the video_clips
 		document.getElementById("export_data").value = JSON.stringify(video_clips);
+
+		document.getElementById("export_type").value = JSON.stringify(export_setting);
 		//document.getElementById("export_data").value = JSON.stringify({attr1:"m", attr2:1});
 		
 

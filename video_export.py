@@ -20,19 +20,21 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 		### 2. trim and export the clip 
 
 		# Slow export ('perfect'(?) cuts and playback)
-		#subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -async 1 ' + output_path)
+		subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -async 1 ' + output_path)
 		
 		# Fast export (inaccurate cuts, random jumping) 
-		subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -c copy ' + output_path)
+		#subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -c copy ' + output_path)
 
 
 
 		### 3. "reframe" the clip.
 		# Tweak 'reframe' attributes (should we do these calculations from the client side?)
 		video_clips[i]["scale_factor"] = 1/video_clips[i]["scale_factor"]
-		video_clips[i]["degrees_cw"] = -video_clips[i]["degrees_cw"]/100
-		video_clips[i]["translate_y"] = -video_clips[i]["translate_y"]/100
+		#video_clips[i]["degrees_cw"] = -video_clips[i]["degrees_cw"]/100
+		video_clips[i]["translate_y"] = -video_clips[i]["translate_y"]
+		video_clips[i]["translate_x"] = -video_clips[i]["translate_x"]
 		# reframing involves exporting a new file (differentiated with a '_reframed' suffix)
+		print("\n\n\n\n\n"+"translate_x"+str(video_clips[i]["translate_x"])+"\n translate_y"+str(video_clips[i]["translate_y"])+"\n\n\n\n\n")
 		reframe_clip(output_path, output_path[:-4]+"_reframed"+output_path[-4:], video_clips[i]["scale_factor"], video_clips[i]["degrees_cw"], video_clips[i]["translate_x"], video_clips[i]["translate_y"])
 		
 		video_clip_paths.append(output_path[:-4]+"_reframed"+output_path[-4:])
@@ -63,9 +65,12 @@ def join_video(video_clip_paths):
 	# concatenate all videos in clip_list.txt
 	subprocess.call('ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files\\output.mp4')
 	
+
+	# for testing the reframes!
+	#subprocess.call('ffplay sample_video_files/output.mp4')
 	# delete the 'intermediate' files
-	delete_files(video_clip_paths)
-	delete_files(["sample_video_files\\clip_list.txt"])
+	#delete_files(video_clip_paths)
+	#delete_files(["sample_video_files\\clip_list.txt"])
 
 def reframe_clip(source_path, output_path, scale_factor, degrees_cw, translate_x, translate_y):
 
@@ -89,7 +94,34 @@ def reframe_clip(source_path, output_path, scale_factor, degrees_cw, translate_x
 	brightness = 0.04 # from -1.0 to 1.0 (default = 0)
 
 	# rotate then crop.
-	subprocess.call('ffmpeg -i ' + source_path + ' -vf "eq=brightness=' + str(brightness) + ', rotate=' + str(degrees_cw) + '*PI/180, crop=in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=(in_w*' + str(translate_x) + ')+(in_w-in_w*'+str(scale_factor)+')/2:y=(in_h*' + str(translate_y) + ')+(in_h-in_h*'+str(scale_factor)+')/2" ' + output_path)
+
+	# old, buggy crop.
+	#subprocess.call('ffmpeg -i ' + source_path + ' -vf "eq=brightness=' + str(brightness) + ', rotate=' + str(degrees_cw) + '*PI/180, crop=in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=(in_w*' + str(translate_x) + ')+(in_w-in_w*'+str(scale_factor)+')/2:y=(in_h*' + str(translate_y) + ')+(in_h-in_h*'+str(scale_factor)+')/2" ' + output_path)
+	# new, maybe working crop (%).
+	#print("\n\n\n\n\n\n\n using the new crop ---------------------- \n\n\n\n\n\n\n\n")
+	#subprocess.call('ffmpeg -i ' + source_path + ' -vf "eq=brightness=' + str(brightness) + ', rotate=' + str(degrees_cw) + '*PI/180, crop=in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=(in_w-out_w)/2+(in_w*('+str(translate_x)+'/100)):y=(in_h-out_h)/2+(in_h*('+str(translate_y)+'/100))" ' + output_path)
+	# newer, maybe working crop (px).
+	print("\n\n\n\n\n\n\n using the new crop ---------------------- \n\n\n\n\n\n\n\n")
+	#subprocess.call('ffmpeg -i ' + source_path + ' -vf "eq=brightness=' + str(brightness) + ', rotate=' + str(degrees_cw) + '*PI/180, crop=exact=1:in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=(in_w-out_w)/2+(in_w*('+str(translate_x)+')):y=(in_h-out_h)/2+(in_h*('+str(translate_y)+'))" ' + output_path)
+	# a bug with the above line
+	subprocess.call('ffmpeg -i ' + source_path + ' -vf "eq=brightness=' + str(brightness) + ', rotate=' + str(degrees_cw) + '*PI/180, crop=in_w*'+str(scale_factor)+':in_h*'+str(scale_factor)+':x=(in_w-out_w)/2+(in_w*('+str(translate_x)+')):y=(in_h-out_h)/2+(in_h*('+str(translate_y)+'))" ' + output_path)
+
+
+	'''
+	draw a line: ffmpeg -i test_video.mp4 -vf "[in]drawtext=fontsize=20:fontcolor=White:fontfile='/Windows/Fonts/arial.ttf':text='onLine1':x=(w)/2:y=(h)/2, drawtext=fontsize=20:fontcolor=White:fontfile='/Windows/Fonts/arial.ttf':text='onLine2':x=(w)/2:y=((h)/2)+25, drawtext=fontsize=20:fontcolor=White:fontfile='/Windows/Fonts/arial.ttf':text='onLine3':x=(w)/2:y=((h)/2)+50[out]" -y draw.mp4
+	empty crop: ffmpeg -i test_video.mp4 -vf "crop=in_w:in_h:0:0" output.mp4
+	trim: ffmpeg -i test_video.mp4 -ss 1 -to 3 -async 1 output.mp4
+
+	50_percent_centered_zoom: ffmpeg -i test_video.mp4 -vf "crop=in_w*0.5:in_h*0.5:(in_w-out_w)/2:(in_h-out_h)/2" 50_percent_centered_zoom.mp4
+	10_zoom_10_down: ffmpeg -i test_video.mp4 -vf "crop=in_w*0.5:in_h*0.5:(in_w-out_w)/2:(in_h-out_h)/2+(in_h*(10/100))" 50_zoom_10_down2.mp4
+	10_zoom_10_down: ffmpeg -i test_video.mp4 -vf "crop=in_w*0.5:in_h*0.5:(in_w-out_w)/2+(in_w*(10/100)):(in_h-out_h)/2+(in_h*(10/100))" 50_zoom_10_down_10_right.mp4
+
+	x=(in_w*' + str(translate_x) + ')+(in_w-in_w*'+str(scale_factor)+')/2
+	:
+	y=(in_h*10)+(in_h-in_h*0.9)/2
+	'''
+
+
 		
 def delete_files(list_of_files):
 	for file_path in list_of_files:

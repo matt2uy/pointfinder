@@ -50,7 +50,6 @@ def edit_video(): #change to 'watch'
 
 	# get the video export data from the client.
 	stringified_array = request.form['export_data'] # seems like we are just getting a string, not json.
-
 	##### parse the json...
 
 	# convert the stringified list into an actual list

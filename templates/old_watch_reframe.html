@@ -1,0 +1,1284 @@
+{% extends "layout.html" %}
+{% block body %}
+
+
+
+<style>
+
+	/* Scoreboard Overlay (incomplete as of 9/13/18) */
+	.overlay {
+		height: 10%;
+		width: 20%;
+		position: absolute;
+		bottom: 20%;
+		left: 5%;
+		z-index: 2;
+		background: white;
+		opacity: 0.35;
+	}
+
+	table {
+		font-size:2vw;
+		font-family: arial, sans-serif;
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	td, th {
+		border: 1px solid #dddddd;
+		text-align: left;
+		padding: 1px;
+	}
+
+	/* For the video preview interface layers */
+	.canvas{
+		 width:100%;
+		 height:100%;
+		 position:absolute;
+		 left: 0; 
+		 top: 0;
+		 border: 1px solid black;
+		}
+
+
+	
+	/* Allows for video reframing (plop divs on top of each other) */
+	#video_structure_wrapper {
+	  position: relative;
+	  overflow: hidden;
+	}
+
+	#video_background {
+	  background-color: black;
+	}
+
+	#video_preview {
+	  position: absolute;
+	  top: 0;
+	  left: 0px;
+	}
+
+	/* Video reframing (part 2) -> for 'head up display' guide graphics */
+	.video_reframe_hud {
+		width: 360px;
+		height: 0px;
+		border-bottom: 50px red;
+		position: absolute;
+		opacity: 0;
+		z-index:1;
+	}
+
+</style>
+
+
+<body>
+<form action="{{ url_for('edit_video') }}" method=post class=add-entry>
+	<!--  width="100%" height="100%" position="absolute" left="0" top="0" -->
+		<canvas class="canvas" id="canvas1_baseui"></canvas>
+		<canvas class="canvas" id="canvas2_video"></canvas>
+		<canvas class="canvas" id="canvas3_timeline"></canvas>
+		<canvas class="canvas" id="canvas4_timeline_cursor"></canvas>
+	<div class="container">
+
+
+		
+
+
+
+
+
+			
+
+			<!-- Progress/seek bar? -->
+			<!-- a bunch of buttons -->
+			<div class="row">
+
+				<!-- Left side -->
+
+				<div class="col-md-2">						
+					<br></br>
+					<input multiple id="choose_file" type="file" accept="video/*"/>
+					<font size="1">
+						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
+						<div id="message"></div>
+					</font>
+
+					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Import Files</button>
+
+					<br></br>
+
+		   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="First group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-undo-alt" onclick="rotate_CW();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-redo-alt" onclick="rotate_CCW();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-search-plus" onclick="zoom_in();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-search-minus" onclick="zoom_out();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-left" onclick="translate_right();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-right" onclick="translate_left();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-up" onclick="translate_down();"></button>
+							<button type="button" class="btn btn-secondary mr-1 fas fa-arrow-down" onclick="translate_up();"></button>
+						</div>
+						<div class="btn-group mr-1 mb-1" role="group" aria-label="Second group">
+							<button type="button" class="btn btn-secondary mr-1" onclick="reset_frame();">Reset Frame</button>
+						</div>
+					</div>
+
+
+
+				</div>
+
+
+				<!-- Center panel -->
+
+
+				<div class="col-md-8">
+					<div class="form group">
+
+
+						<!-- Could be the scoreboard? -->
+							<!-- <div class="overlay">
+							<table border=1 frame=void rules=rows>
+								<tr>
+									<th>Player 1</th>
+									<th>1</th>
+									<th>0</th>
+									<th>40</th>
+								</tr>
+								<tr>
+									<td>Player 2</td>
+									<td>2</td>
+									<td>0</td>
+									<td>15</td>
+								</tr>
+							</table>
+						 </div> -->
+
+
+						<br></br>
+
+
+						<!-- video preview background (black, fixed size) -->
+						<div id="video_structure_wrapper">
+						  <div id="video_background"></div>
+						  <div id="video_preview">
+						  	<!-- Video preview -->
+								<video width="100%" id="UserVideo" ontimeupdate='play_edit(this)'></video>
+								
+								
+						  </div>
+						</div>
+
+
+						<br></br> 
+						<br></br> 
+
+			   		<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+							<div class="btn-group mr-1" role="group" aria-label="First group">
+								<button type="button" class="btn btn-secondary mr-1 fas fa-caret-square-left" onclick="skip_to_start();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-fast-backward" onclick="fast_rewind();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-reply" onclick="skip_backward_by_increment();"></button>
+								<button type="button" class="btn btn-secondary fas fa-step-backward" onclick="frame_step_backward();"></button>
+							</div>
+							<div class="btn-group mr-1" role="group" aria-label="Second group">
+								<button type="button" class="btn btn-secondary fas fa-play" onclick="play_pause_video();"></button>
+							</div>
+							<div class="btn-group" role="group" aria-label="Third group">
+								<button type="button" class="btn btn-secondary mr-1 fas fa-step-forward" onclick="frame_step_forward();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-share" onclick="skip_forward_by_increment();"></button>
+								<button type="button" class="btn btn-secondary mr-1 fas fa-fast-forward" onclick="fast_forward();"></button>
+								<button type="button" class="btn btn-secondary fas fa-caret-square-right" onclick="skip_to_end();"></button>
+							</div>
+						</div>
+
+						
+
+<!--
+						<div class="btn-toolbar mt-1" role="toolbar" aria-label="Toolbar with button groups">
+							<div class="btn-group mr-1" role="group" aria-label="First group">
+								<button type="button" class="btn btn-secondary mr-1" onclick="go_to_fullscreen();">Full Screen</button>
+								<button type="button" class="btn btn-secondary mr-1" onclick="clear_current_point();">Undo<-</button>
+								<button type="button" class="btn btn-secondary mr-1" onclick="add_timestamp('start_of_point');">[</button>
+								<button type="button" class="btn btn-secondary" onclick="add_timestamp('end_of_point');">]</button>
+							</div>
+						</div>
+ -->
+
+
+
+
+					</div>
+				</div>
+
+
+				<!-- Right side -->
+
+				<div class="col-md-2">
+					<br></br>
+					<button type="submit" class="btn btn-primary"">Export Video</button>
+					<br></br>
+					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Preview Video</button>
+
+					<input type="text" name="enter_video_clips_here" class="form-control" id="enter_video_clips_here" placeholder="video_clips: " maxlength="7">
+				</div>
+
+			</div>
+
+
+
+
+	<!-- /.container -->
+
+</form>
+</body>
+
+
+
+<!-- keyboard events -->
+<script type="text/javascript">
+
+	
+	// Video variables
+	var file; // temp (awaiting multi-file support)
+	var UserVideo = document.getElementById("UserVideo");
+	var frames_per_second = 60;
+	var frame_length = 1/frames_per_second;
+
+	// should be like a "prototype"
+	var video_clip_template = {
+		filename: "test", 
+		start_time: 0,
+		end_time: 0,
+		trim_complete: false,
+		scale_factor: 1, // in % (0.0-1.0)
+		degrees_cw: 0, // in degrees
+		translate_x: 0, // in px
+		translate_y: 0 // in px
+	};
+
+	var video_clips = [];
+
+	var time_jump_duration = 5;
+	var fast_forward_rewind_speed = 5;
+	var slow_forward_rewind_speed = 0.2;
+
+	///////// keypresses.../////////////////////
+
+	document.addEventListener('keyup', function (event) {
+		if (event.defaultPrevented) {
+			return;
+		}
+
+		var key = event.key || event.keyCode;
+
+		//// moving around
+
+		// 1. pause/play
+		if (key === 's' || key === 83 || key === 'KeyS') {
+			play_pause_video();
+		}
+
+		//// slice and dice
+		
+		// 2. frame step backwards
+		else if (key === 'q' || key === 81 || key === 'KeyQ') {
+			frame_step_backward();
+		}
+		
+		// 3. frame step forwards
+		else if (key === 'e' || key === 69 || key === 'KeyE') {
+			//frame_step_forward();
+			frame_step_forward();
+		}
+
+		// 4. fast forward
+		else if (key === 'c' || key === 67 || key === 'KeyC') {
+			fast_forward();
+		}
+
+
+		// ... some more traversing ... (related to video cuts though)
+		
+		// 5a. skip backward x seconds
+		else if (key === 'a' || key === 65 || key === 'KeyA') {
+			skip_backward_by_increment();
+		}
+		
+		// 5b. skip forward x seconds
+		else if (key === 'd' || key === 68 || key === 'KeyD') {
+			skip_forward_by_increment();
+		}
+
+		
+		// 5c. skip to previous start/end of a point
+		else if (key === ';' || key === 186 || key === 'Semicolon') {
+			skip_to_previous_timestamp();
+		}
+		
+		// 5d. skip to next start/end of a point
+		else if (key === "'" || key === 222 || key === 'Quote') {
+			skip_to_next_timestamp();
+		}		
+		
+		// 6a. go back to start
+		else if (key === 'o' || key === 79 || key === 'KeyO') {
+			skip_to_start();
+		}
+		
+		// 6b. skip to end
+		else if (key === 'p' || key === 80 || key === 'KeyP') {
+			skip_to_end();
+		}
+		
+		// a sample diagnostic 'alert' key
+		// else if (key === 't' || key === 84 || key === 'KeyT') {
+		// 	alert(JSON.stringify(video_clips));
+		// }
+
+		// next: go to next start/end timestamp
+
+	});
+
+	// run function when key is pressed down (if held down, it will run many times though) (from S.O.)
+	// maybe "keypress" will be used to timing sensitive functions.
+	function KeyPress(e) {
+		var evtobj = window.event ? event : e
+
+		// undo current/previous point
+		if (evtobj.keyCode === 90 && evtobj.ctrlKey) {
+			clear_current_point()
+		} 
+
+		// go to fullscreen
+		else if (evtobj.keyCode === 'f' || evtobj.keyCode === 70 || evtobj.keyCode === 'KeyF') {
+			go_to_fullscreen();	
+		 }
+
+		// set start of point
+		else if (evtobj.keyCode === '[' || evtobj.keyCode === 219 || evtobj.keyCode === 'BracketLeft') {
+			add_timestamp('start_of_point');
+			}  
+
+		// set end of point
+		else if (evtobj.keyCode === ']' || evtobj.keyCode === 221 || evtobj.keyCode === 'BracketRight') {
+			add_timestamp('end_of_point');
+			}
+	}
+
+	document.onkeydown = KeyPress;
+	/*
+	document.addEventListener('keydown', function (event) {
+		if (event.defaultPrevented) {
+			return;
+		}
+
+		var key = event.key || event.keyCode;
+
+		// slice and dice
+		
+		// ~2. frame step backwards
+		if (key === 'q' || key === 81 || key === 'KeyQ') {
+			// slower/choppier than frame-stepping forward?
+			UserVideo.currentTime -= frame_length;
+			pause_video();
+		}
+		
+		// ~3. frame step forwards
+		else if (key === 'e' || key === 69 || key === 'KeyE') {
+			UserVideo.currentTime += frame_length;
+			pause_video();
+		}
+
+		// ~4. fast forward
+		else if (key === 'c' || key === 67 || key === 'KeyC') {
+			UserVideo.playbackRate = fast_forward_rewind_speed;
+			pause_video();
+		}
+		
+	});
+	*/
+
+
+	///////// I guess this function runs the file(s) that were inputed by the user? ////////////
+
+	
+
+	(function localFileVideoPlayer() {
+		
+		'use strict';
+		var URL = window.URL || window.webkitURL;
+		
+		var displayMessage = function (message, isError) {
+			var element = document.querySelector('#message');
+			element.innerHTML = message;
+			element.className = isError ? 'error' : 'info';
+		}
+
+		var playSelectedFile = function (event) {
+			file = this.files[0]; // a global variable? (will be fixed when multi-file support is implemented)
+			var type = file.type;
+			var videoNode = document.querySelector('video');
+			var canPlay = videoNode.canPlayType(type);
+			if (canPlay === '') canPlay = 'no';
+			var message = 'Can play type "' + type + '": ' + canPlay + this.files.length;
+			var isError = canPlay === 'no';
+			displayMessage(message, isError);
+
+			if (isError) {
+			return;
+			}
+
+			var fileURL = URL.createObjectURL(file);
+			videoNode.src = fileURL;
+
+
+
+		}
+		var inputNode = document.querySelector('input');
+		// if anything concerning the "input" is modified, then 'playSelectedFile()' is run.
+		inputNode.addEventListener('change', playSelectedFile, false);
+	})()
+
+
+
+	///////// User control functions //////////// 
+
+
+
+	function play_pause_video() {
+		if (UserVideo.paused) {
+				UserVideo.playbackRate = 1;
+				UserVideo.play();
+			}
+			else {
+				UserVideo.pause();
+			}
+	}
+
+	function pause_video() {
+		UserVideo.pause();
+	}
+
+	function play_video() {
+		UserVideo.play();
+	}
+
+	function skip_to_start() {
+		UserVideo.currentTime = 0;
+		play_edit();
+	}
+
+	function skip_to_end() {
+		UserVideo.currentTime = UserVideo.duration;
+		play_edit();
+	}
+
+	function fast_forward() {
+		// let's toggle it
+		if (UserVideo.playbackRate === 1) {
+			UserVideo.playbackRate = fast_forward_rewind_speed;
+		}
+		else if (UserVideo.playbackRate != 1) {
+			UserVideo.playbackRate = 1;
+		}
+		UserVideo.play();
+	}
+
+	function slow_motion() {
+		// let's toggle it
+		if (UserVideo.playbackRate === 1) {
+			UserVideo.playbackRate = slow_forward_rewind_speed;
+		}
+		else if (UserVideo.playbackRate != 1) {
+			UserVideo.playbackRate = 1;
+		}
+		UserVideo.play();
+	}
+
+	function fast_rewind() {
+		// let's toggle it
+		if (UserVideo.playbackRate === 1) {
+			UserVideo.playbackRate = -fast_forward_rewind_speed;
+		}
+		else if (UserVideo.playbackRate > 1) {
+			UserVideo.playbackRate = 1;
+		}
+	}
+
+	function skip_forward_by_increment() {
+		UserVideo.currentTime += time_jump_duration;
+		play_edit();
+	}
+
+	function skip_backward_by_increment() {
+		UserVideo.currentTime -= time_jump_duration;
+		play_edit();
+	}
+
+	function skip_to_previous_timestamp() {
+
+		// pause video when skipping back and forth.
+		UserVideo.pause();
+
+		// make sure currentTime is not in "empty space" first.
+		play_edit();
+
+		// check start, final point and end cases.
+
+		// 1. if the first point hasn't started yet (or is at the first frame) -> go to the start of the video file.
+		if (UserVideo.currentTime <= video_clips[0].start_time) {
+			UserVideo.currentTime = 0;
+		}
+
+		// 2. if we are in the final point -> go to the start of the final point.
+		else if (UserVideo.currentTime > video_clips[video_clips.length-1].start_time && UserVideo.currentTime <= video_clips[video_clips.length-1].end_time) {
+			UserVideo.currentTime = video_clips[video_clips.length-1].start_time;
+		}
+
+		// 3. if the final point has ended -> go to the end of the final point.
+		else if (UserVideo.currentTime > video_clips[video_clips.length-1].end_time) {
+			UserVideo.currentTime = video_clips[video_clips.length-1].end_time;
+		}
+
+		// 4. go to the start of the previous point.
+		else {
+			found_current_time = false;
+			point_index = 0;
+
+			while (found_current_time === false) {				
+				// if we are ("inside"] a point or at the first frame of the next point -> go to the start of the current point.
+				if (UserVideo.currentTime > video_clips[point_index].start_time && UserVideo.currentTime <= video_clips[point_index+1].start_time) {
+					found_current_time = true;
+					UserVideo.currentTime = video_clips[point_index].start_time;
+				}
+
+				// keeping looking? (at the next point)
+				point_index += 1;
+
+				if (point_index >= video_clips.length-1) {
+					found_current_time = true;
+				}
+			}
+		}
+
+		// refresh video editor "position"
+		play_edit();
+	}
+
+
+	function skip_to_next_timestamp() {
+
+		// pause video when skipping back and forth.
+		//UserVideo.pause();
+
+		// make sure currentTime is not in "empty space" first.
+		play_edit();
+
+		// check start, final point and end cases.
+
+		// if the first point hasn't started yet -> go to the start of the first point.
+		if (UserVideo.currentTime < video_clips[0].start_time) {
+			UserVideo.currentTime = video_clips[0].start_time;
+		}
+
+		// if we are in the final point -> go to the end of the final point.
+		else if (UserVideo.currentTime >= video_clips[video_clips.length-1].start_time && UserVideo.currentTime < video_clips[video_clips.length-1].end_time) {
+			UserVideo.currentTime = video_clips[video_clips.length-1].end_time;
+		}
+
+		// if the final point has ended/is at the final frame -> go to the end of the video file.
+		else if (UserVideo.currentTime >= video_clips[video_clips.length-1].end_time) {
+			UserVideo.currentTime = UserVideo.duration;
+		}
+
+		else {
+			found_current_time = false;
+			point_index = 0;
+
+			while (found_current_time === false) {				
+				// if we are ["inside") a point -> go to the start of the next point.
+				if (UserVideo.currentTime >= video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index].end_time) {
+					found_current_time = true;
+					UserVideo.currentTime = video_clips[point_index + 1].start_time;
+				}
+
+				// keeping looking? (at the next point)
+				point_index += 1;
+
+				if (point_index >= video_clips.length-1) {
+					found_current_time = true;
+				}
+			}
+		}
+
+		// refresh video editor "position"
+		play_edit();
+	}
+
+
+	function frame_step_forward() {
+		UserVideo.currentTime += frame_length;
+		pause_video();
+	}
+
+	function frame_step_backward() {
+		UserVideo.currentTime -= frame_length;
+		pause_video();
+	}
+
+
+	
+
+	// I guess there's no toggle available yet?
+	function go_to_fullscreen() {
+		UserVideo.webkitRequestFullScreen();
+	}
+	
+	
+	
+	///////////////////////////////
+	////////////////////////////////
+	/////////////////////////////////
+	// UI
+	////////////////////////
+	/////////////////////////////
+	////////////////////////////////
+
+	// introduce each canvas
+	var canvas1_baseui = document.getElementById('canvas1_baseui');
+	var canvas2_video = document.getElementById('canvas2_video');
+	var canvas3_timeline = document.getElementById('canvas3_timeline');
+	var canvas4_timeline_cursor = document.getElementById('canvas4_timeline_cursor');
+
+	// set the play area for each canvas (for loop? for an array of canvases?)
+	canvas1_baseui.width = window.innerWidth;
+	canvas1_baseui.height = window.innerHeight;
+	
+	canvas2_video.width = window.innerWidth;
+	canvas2_video.height = window.innerHeight;
+	
+	canvas3_timeline.width = window.innerWidth;
+	canvas3_timeline.height = window.innerHeight;
+	
+	canvas4_timeline_cursor.width = window.innerWidth;
+	canvas4_timeline_cursor.height = window.innerHeight;
+
+	// set the "context" for each canvas
+	var ctx1_baseui = canvas1_baseui.getContext('2d');
+	var ctx2_video = canvas2_video.getContext('2d');
+	var ctx3_timeline = canvas3_timeline.getContext('2d');
+	var ctx4_timeline_cursor = canvas4_timeline_cursor.getContext('2d');
+
+	// mouse object
+	var mouse = {
+		x: undefined,
+		y: undefined
+	} 
+
+	// timeline variables:
+	currently_dragged = false;
+	timeline_height_factor = 7;
+	timeline_bar_thickness = 5;
+		
+	// Drawing functions ////////////////////////////////
+	// the exterior timeline bar.
+	function draw_timeline_bar() {
+		// update video location variables (maybe call this on video resizes only)
+		video_location = document.getElementById("video_background").getBoundingClientRect();
+		video_width = video_location.right-video_location.left
+		video_height = video_location.bottom-video_location.top
+
+		// clear this canvas
+		ctx3_timeline.clearRect(0, 0, window.innerWidth, window.innerHeight);
+		
+		ctx3_timeline.fillStyle = 'grey';
+		// top bar
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom, video_width+10, timeline_bar_thickness);
+		// bottom bar
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom+(video_height/timeline_height_factor), video_width+10, timeline_bar_thickness);
+		// left bar
+		ctx3_timeline.fillRect(video_location.left-timeline_bar_thickness, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
+		// right bar
+		ctx3_timeline.fillRect(video_location.right, video_location.bottom+1, timeline_bar_thickness, video_height/timeline_height_factor);
+	}
+
+
+	function draw_timeline_cursor() {
+		// update video location (maybe call this on video resizes only)
+		video_location = document.getElementById("video_background").getBoundingClientRect();
+		video_width = video_location.right-video_location.left;
+		video_height = video_location.bottom-video_location.top
+
+
+
+		//Display the timeline "cursor"// clear this canvas
+		ctx4_timeline_cursor.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+		//////////////////////// draw the point markers -> note: make this a canvas in between 3 (timeline) and 4 (cursor)?
+		
+			for (var point_index = 0; point_index < video_clips.length; point_index++) {
+				// alternate bar colours for visibility
+				if (point_index % 2 === 0) {
+					ctx4_timeline_cursor.fillStyle = '#046380';
+				}
+				else {
+					ctx4_timeline_cursor.fillStyle = '#A7A37E';
+				}		
+
+				// scale the point video_clips -> position on the timeline first
+			// ooo -> make a function for that -> time_to_timeline_position() {} and timeline_position_to_time() {}
+			start_point_pos = ((video_clips[point_index].start_time / UserVideo.duration) * video_width) + video_location.left;
+			end_point_pos = ((video_clips[point_index].end_time / UserVideo.duration) * video_width) + video_location.left;
+
+			// "draw" the point on the timeline
+			ctx4_timeline_cursor.fillRect(start_point_pos, video_location.bottom+timeline_bar_thickness, end_point_pos-start_point_pos, video_height/timeline_height_factor-timeline_bar_thickness);
+			}
+
+
+		//////////////////////////////////////// draw the timeline cursor (black; mouse) line.
+		// get the cursor location
+		if (mouse.x < video_location.left) {
+			cursor_location = video_location.left;
+		}
+		else if (mouse.x > video_location.left + video_width) {
+			cursor_location = video_location.left + video_width;
+		}
+		else {
+			cursor_location = mouse.x-1;
+		}
+		
+
+
+		// "timeline cursor" bar.
+		// "currently dragged" behaviour -> select an element?
+		if (currently_dragged) {
+			// skip to selected point in the video timeline.
+			// ... (the opposite of 'current_location') -> cursor_location to time in seconds.
+
+			// make sure the cursor is "in the box" when "seeking"
+			if ((mouse.x >= video_location.left-timeline_bar_thickness) && (mouse.x <= video_location.left + video_width+timeline_bar_thickness) && (mouse.y >= video_location.bottom) && (mouse.y <= (video_height/timeline_height_factor)+video_location.bottom+timeline_bar_thickness)) {
+				// "seek" to a specific point on the timeline
+				UserVideo.currentTime = ((cursor_location - video_location.left)/video_width)*UserVideo.duration;
+			}
+		}
+
+
+
+		///////////////////////////////////////////// draw the "currentTime" (red) line.
+
+		// get the currentTime x.location to scale (AKA convert time in seconds to a position on the timeline)
+		progress_location = ((UserVideo.currentTime / UserVideo.duration) * video_width) + video_location.left;
+		ctx4_timeline_cursor.fillStyle = 'red';
+		ctx4_timeline_cursor.fillRect(progress_location, video_location.bottom+timeline_bar_thickness, 1, (video_height/timeline_height_factor)-timeline_bar_thickness);
+
+
+		///////////////////////////////////////////// draw the start and end points
+		/*
+		- no gaps
+		- may have to resize/rescale the timeline after each change
+		- may need a "scrolling" timeline (or a timeline zoom in/out) later.
+
+		1. for now: show gaps
+		2. add a keyboard shortcut for "next/previous point" (maybe : and ' keys?)
+		*/
+
+
+		///////////////////////// draw time, edit length, etc.
+		ctx4_timeline_cursor.fillStyle = 'black';
+		ctx4_timeline_cursor.font = "10px Arial";
+
+		//ctx4_timeline_cursor.fillText("Point video_clips: " + JSON.stringify(video_clips), video_location.left,video_location.bottom+70);	
+
+		ctx4_timeline_cursor.fillText("Edit Length: " + get_edit_length(video_clips), video_location.left,video_location.bottom+video_height/timeline_height_factor+timeline_bar_thickness*3);	
+
+		ctx4_timeline_cursor.fillText(seconds_to_mins_secs(UserVideo.currentTime) + "/" + seconds_to_mins_secs(UserVideo.duration), video_location.right-timeline_bar_thickness-50, video_location.bottom+video_height/timeline_height_factor+timeline_bar_thickness*3);			
+	}
+
+	// event listener
+	// mouse movement behaviour
+	window.addEventListener('mousemove', function(event)
+	{
+		mouse.x = event.x;
+		mouse.y = event.y;
+		draw_timeline_cursor();
+	})
+
+	// mouse click and hold behaviour
+	var mouseIsDown = false; // status of mouse click (maybe we could specify left/right click later.)
+
+	window.addEventListener('mousedown', function() {
+		mouseIsDown = true;
+		setTimeout(function() {
+			if (mouseIsDown) {
+				currently_dragged = true;
+				draw_timeline_cursor();
+			}
+		});
+	});
+
+	window.addEventListener('mouseup', function() {
+		mouseIsDown = false;
+		currently_dragged = false;
+		draw_timeline_cursor();
+	});
+
+
+
+	/////////////////////
+	//////////////////////////////////////////
+	///////// Video editing events //////////// 
+	//////////////////////////////////////////////
+	/////////////
+
+
+	// add start/end video_clips
+	function add_timestamp(timestamp_type) {
+		if (timestamp_type === 'start_of_point') {
+			// add to end -> but fix this later (for non-linear user timestamp inputs)
+			
+			// Start off with a clean slate for the first one.
+			if (video_clips.length === 0) {
+				video_clips.push({
+					filename: file.name, 
+					start_time: UserVideo.currentTime,
+					end_time: UserVideo.currentTime,
+					trim_complete: false,
+					scale_factor: 1, // in % (0.0-1.0)
+					degrees_cw: 0, // in degrees
+					translate_x: 0, // in px
+					translate_y: 0 // in px
+				});
+			}
+
+			// Otherwise start off with the previous video_clip's attributes.
+			else {
+				// 1. If the 'trim' is not 'complete', overwrite the 'start_time' property.
+				if (video_clips[video_clips.length-1].trim_complete === false) {
+					video_clips[video_clips.length-1].start_time = UserVideo.currentTime;	
+
+					// and while we're at it... redraw the timeline_bar_cursor?
+					play_edit(); // this might be temporary -> maybe run this function after all user inputs in general?				
+				}
+				// 2. Make sure that there is no start/end at the same timestamp.
+				else if (video_clips[video_clips.length-1].end_time != video_clips[video_clips.length-1].start_time) {
+
+					video_clips.push({
+						filename: file.name,
+						start_time: UserVideo.currentTime,
+						end_time: UserVideo.currentTime,
+						trim_complete: false,
+						scale_factor: video_clips[video_clips.length-1].scale_factor, // in % (0.0-1.0)
+						degrees_cw: video_clips[video_clips.length-1].degrees_cw, // in degrees
+						translate_x: video_clips[video_clips.length-1].translate_x, // in px
+						translate_y: video_clips[video_clips.length-1].translate_y // in px
+					});
+				}
+			}
+				
+
+				
+			
+
+
+		}
+
+		else if (timestamp_type === 'end_of_point') {
+			// add to end -> but fix later (see below)
+			//var old = video_clips[video_clips.length-1].end_time;
+			video_clips[video_clips.length-1].end_time = UserVideo.currentTime;
+			video_clips[video_clips.length-1].trim_complete = true;
+
+			// and while we're at it... redraw the timeline_bar_cursor?
+			play_edit(); // this might be temporary -> maybe run this function after all user inputs in general?
+		}
+
+		// insert the timestamp in the correct timestamp[index]
+		// ... so that the elements are non-decreasing.
+	}
+
+	// "undo"/remove a point from "video_clips" array
+	function clear_current_point() {
+		if (video_clips.length >= 1) {
+			video_clips = video_clips.slice(0, -1)
+			play_edit(UserVideo);
+		}	
+	}
+
+	function seconds_to_mins_secs(time_in_seconds) {
+		// 2. convert seconds to min:secs
+		// (stack overflow)
+		// Hours, minutes and seconds
+
+		var hrs = ~~(time_in_seconds / 3600); // it appears that '~~' is a "faster" version of Math.floor()
+		var mins = ~~((time_in_seconds % 3600) / 60);
+		var secs = Math.round(time_in_seconds % 60);
+
+		// Output like "1:01" or "4:03:59" or "123:03:59"
+		var formatted_time = "";
+
+		if (hrs > 0) {
+			formatted_time += "" + hrs + ":" + (mins < 10 ? "0" : "");
+		}
+
+		formatted_time += "" + mins + ":" + (secs < 10 ? "0" : "");
+		formatted_time += "" + secs;
+		return formatted_time;
+	}
+
+	// get the length (in seconds) of the user's edit
+	function get_edit_length(video_clips) {
+		edit_length = 0
+		
+		// 1. get the "edit_length" (total number of seconds)
+		for (var point_index = 0; point_index < video_clips.length; point_index++) {
+			// only check for time if the "point" is "complete"
+			if (video_clips[point_index].length === 2) {
+				edit_length += (video_clips[point_index].end_time - video_clips[point_index].start_time)
+			}
+
+			// though, do a running tally of the current point.
+			else {
+				if (UserVideo.currentTime >= video_clips[video_clips.length-1].start_time) {
+					edit_length += (UserVideo.currentTime - video_clips[video_clips.length-1].start_time)
+				}
+				
+			}
+		}
+	
+		// 2. convert seconds to min:secs
+		return seconds_to_mins_secs(edit_length);
+	}
+
+
+
+
+	/////////////////////////////////////////	
+	/////////////////////////////////////////
+	/////////////// Video reframing /////////
+	/////////////////////////////////////////
+	/////////////////////////////////////////
+
+
+
+	// video reframe attributes
+
+	var zoom = 1; // in percentage
+	var rotation = 0; // in degrees (sure about that?)
+	var translate_x = 0; // in percentage
+	var translate_y = 0; // in percentage
+
+	// increments for each user input
+	var zoom_increment = 0.05;
+	var rotation_increment = 0.5;
+	var translate_increment = 1;
+
+	// video reframing - hud variables
+	var time_to_hud_fade = 0;
+	var hud_opacity = 1;
+	var show_hud; // start/stop 'hud' (head up display) fade function.
+
+	// zoom in/out
+	function zoom_in() {
+		zoom += zoom_increment;
+		redraw_frame();
+	}
+	function zoom_out() {
+		zoom -= zoom_increment;
+		redraw_frame();
+	}
+	// rotate CW/CCW
+	function rotate_CW() {
+		rotation += rotation_increment;
+		redraw_frame();
+	}
+	function rotate_CCW() {
+		rotation -= rotation_increment;
+		redraw_frame();
+	}
+	// translate left/right
+	function translate_left() {
+		translate_x -= translate_increment;
+		redraw_frame();
+	}
+	function translate_right() {
+		translate_x += translate_increment;
+		redraw_frame();
+	}
+	// translate up/down
+	function translate_up() {
+		translate_y -= translate_increment;
+		redraw_frame();
+	}
+	function translate_down() {
+		translate_y += translate_increment;
+		redraw_frame();
+	}
+	function reset_frame() {
+		zoom = 1;
+		rotation = 0;
+		translate_x = 0;
+		translate_y = 0;
+		redraw_frame();
+	}
+
+
+	// function update_hud_status() {
+	// 	clearTimeout(show_hud); // ensure that there aren't multiple instances of 'show_hud' running.
+	// 	time_to_hud_fade = 1;
+	//     hud_opacity = 1;
+	//     document.getElementById("hud").style.opacity = hud_opacity;
+	    
+	// 	// show the 'hud' momentarily.
+	//     show_hud = setInterval(function(){
+	// 		// wait until hud is "ready" to fade out.
+	//         if (time_to_hud_fade > 0) {
+	//         	time_to_hud_fade -= 0.01;
+	//         }
+	        
+	//         // time to fade out the hud.
+	//     	else if (hud_opacity > 0) {
+	//     		hud_opacity -= 0.01; 
+	//         	document.getElementById("hud").style.opacity = hud_opacity;
+	//         }
+	        
+	//         // stop running the 'fade' function
+	//     	else {
+	//         	clearTimeout(show_hud);
+	//         }
+	        
+	//     }, 10); // update the hud status once every 10 milliseconds.
+	// }
+
+	// redraw the frame on the screen with the updated positioning.
+	function redraw_frame() {
+
+		// function add_reframe_instance() {}
+
+		// just to ensure that any reframes are done "at one time".
+		pause_video();
+		
+
+		/*// if this is the first video_clip/just finished the last one...
+		if (video_clips.length === 0 || video_clips[video_clips.length-1].trim_complete === true){
+			add_timestamp("start_of_point");
+		}
+		// 
+		else {
+
+		}*/
+		
+		// create a new reframe_instance with new user-inputted values.
+		add_timestamp("start_of_point");
+
+		// make sure that it is time to create a new reframe_instance
+		video_clips[video_clips.length-1].scale_factor = zoom; 
+		video_clips[video_clips.length-1].degrees_cw = rotation;
+		video_clips[video_clips.length-1].translate_x = translate_x;
+		video_clips[video_clips.length-1].translate_y = translate_y;
+
+
+
+		// video frame position.
+		document.getElementById("video_preview").style.transform =  "translateX("+translate_x+"%) translateY("+translate_y+"%) rotate("+rotation+"deg) scale("+zoom+")";
+
+		
+		var blur = 0; // 0 px default >0 for more blur.
+		var brightness = 100; // 100% default 0% = black
+		var contrast = 100; // 100% default 0% = black
+		var saturation = 0; // 0% unsat, 100% default
+
+
+		// video color correction.
+		document.getElementById("video_preview").style.filter =  "blur("+blur+"px) "+"brightness("+brightness+"%) "+"contrast("+contrast+"%) "+"saturation("+saturation+"%)";
+
+		//update_hud_status();
+	}
+
+
+	function ensure_valid_timestamp() {
+		// Skip the "empty" parts of the video.
+			
+		// [maybe move this elsewhere?] 
+		// first off, update the current "end_time" if we are in the middle of a "trim".
+		if (video_clips.length > 0 && video_clips[video_clips.length-1].trim_complete === false) {
+			video_clips[video_clips.length-1].end_time = UserVideo.currentTime;
+		}
+
+		// must ensure that the values in "video_clips" are strictly increasing.
+		// if the currentTime is "in between" points (aka timestamp[x][0] and timestamp[x][1]) then set currentTime to the next timestamp (so there is seamless playback of the edited match play.)
+		// check each point in 'video_clips'
+		for (var point_index = 0; point_index < video_clips.length-1; point_index++) {
+
+			// 0. Special case for first point (don't look at point_index-1 for now)
+			if (point_index === 0) {
+				if (UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+
+					UserVideo.currentTime = video_clips[point_index].start_time;
+				}
+			}
+			// 1. if we are -> go to the start of the current point.
+			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+				UserVideo.currentTime = video_clips[point_index].start_time;
+			}
+
+			// 2. Before the 'first' point -> go to the start of the first point.
+			else if (UserVideo.currentTime < video_clips[0].start_time) {
+				UserVideo.currentTime = video_clips[0].start_time;
+			}
+
+			// 3. Between Points -> go to the start of the next point.
+			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime >= video_clips[point_index].end_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+				UserVideo.currentTime = video_clips[point_index+1].start_time;
+			}
+
+			// 4. Past all 'video_clips' -> do nothing.
+
+			// 5. Pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
+			/*if (UserVideo.currentTime > video_clips[video_clips.length-1][1]) {
+				pause_video();
+			}*/
+		}
+
+
+
+		// // check a special case:
+		// // if the first point hasn't started -> go to the start of the first point
+		// if (UserVideo.currentTime < video_clips[1][0]) {
+		// 	UserVideo.currentTime = video_clips[1][0];
+		// }
+
+		// // check the rest of the points in 'video_clips'.
+		// else {
+		// 	found_current_time = false;
+		// 	point_index = 1;
+
+		// 	while (found_current_time === false) {				
+		// 		// if we are ["inside") a point -> go to the start of the next point.
+		// 		if (UserVideo.currentTime > video_clips[point_index][1] && UserVideo.currentTime < video_clips[point_index+1][0]) {
+		// 			found_current_time = true;
+		// 			UserVideo.currentTime = video_clips[point_index + 1][0];
+		// 		}
+
+		// 		// keeping looking? (at the next point)
+		// 		point_index += 1;
+
+		// 		if (point_index >= video_clips.length-1) {
+		// 			found_current_time = true;
+		// 		}
+		// 	}
+		// }
+	}
+
+
+	function ensure_valid_reframe_instance() {
+		// a similar function to 'ensure_valid_video_clips()'
+		// ensure that the appropriate reframe settings have been applied.
+		for (var reframe_index = 0; reframe_index < video_clips.length; reframe_index++) {
+			// if we are 'inside' one of the reframe_instances -> apply those settings to the video preview frame.
+
+			//console.log(UserVideo.currentTime + "vs." + reframe_instances[0][0]+"-"+reframe_instances[0][1]);
+
+			if (UserVideo.currentTime > video_clips[reframe_index].start_time && UserVideo.currentTime < video_clips[reframe_index].end_time) {
+
+				// write a function for this?
+				document.getElementById("video_preview").style.transform =  "translateX("+video_clips[reframe_index].translate_x+"%) translateY("+video_clips[reframe_index].translate_y+"%) rotate("+video_clips[reframe_index].degrees_cw+"deg) scale("+video_clips[reframe_index].scale_factor+")";
+
+				reframe_index = video_clips.length; // stop the for loop tranversal.
+			}
+		}
+
+
+	}
+
+
+
+
+	// redraw the "video_background" when there is a change on the screen.
+
+	function resize_ui() {
+		///// set up the video frames and wrappers
+		// call this only when the first video is called, or when the browser is resized.
+
+		// update video location variables (maybe call this on video resizes only)
+		video_location = document.getElementById("UserVideo").getBoundingClientRect();
+		video_width = video_location.right-video_location.left
+		video_height = video_location.bottom-video_location.top
+		
+		document.getElementById("video_background").style.height = video_height+"px";
+		document.getElementById("video_background").style.width = video_width+"px";
+
+		// redraw the timeline bar (to the appropriate size)
+		draw_timeline_bar();
+	}
+
+
+	// redraw ui when a video is first played
+	UserVideo.addEventListener("resize", resize_ui);
+
+	// redraw ui when the browser window is resized
+	window.addEventListener("resize", resize_ui);
+
+
+
+
+
+	/////////////////////////////////////////	
+	/////////////////////////////////////////
+	// Run this function at every frame of video play //
+	/////////////////////////////////////////
+	/////////////////////////////////////////
+
+
+
+
+
+	function play_edit() {
+		// I guess video_clips[0] is a placeholder for now
+		// ... to prevent an off-by-one error in the if/else statements below
+		// ... ([previous] point_index would be out of timestamp index.)
+		
+		// for testing: print out the video_clips
+		document.getElementById("export_data").value = JSON.stringify(video_clips);
+		//document.getElementById("export_data").value = JSON.stringify({attr1:"m", attr2:1});
+		
+
+		ensure_valid_timestamp();
+
+		ensure_valid_reframe_instance();
+
+		draw_timeline_cursor();
+	}
+
+	// Run play_edit() this many times? -> https://stackoverflow.com/questions/12325787/setting-the-granularity-of-the-html5-audio-event-timeupdate
+	UserVideo.addEventListener("timeupdate", play_edit);
+
+
+
+
+	/////////////////////////////////////////	
+	/////////////////////////////////////////
+	/////////////// Video export ////////////
+	/////////////////////////////////////////
+	/////////////////////////////////////////
+
+
+
+	// function export_video() {
+
+	// }
+
+
+
+
+
+</script>
+
+
+{% endblock %}
+
+

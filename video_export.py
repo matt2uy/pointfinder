@@ -59,18 +59,18 @@ def join_video(video_clip_paths):
 
 
 	import datetime
-
+	output_name = "out"+str(datetime.datetime.now().strftime("%m-%d-%y[%H-%M-%S]"))+".mp4"
 	
 
 	# concatenate all videos in clip_list.txt
-	subprocess.call('ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files\\output.mp4')
+	subprocess.call('ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files\\'+output_name)
 	
 
 	# for testing the reframes!
 	#subprocess.call('ffplay sample_video_files/output.mp4')
 	# delete the 'intermediate' files
-	#delete_files(video_clip_paths)
-	#delete_files(["sample_video_files\\clip_list.txt"])
+	delete_files(video_clip_paths)
+	delete_files(["sample_video_files\\clip_list.txt"])
 
 def reframe_clip(source_path, output_path, scale_factor, degrees_cw, translate_x, translate_y):
 

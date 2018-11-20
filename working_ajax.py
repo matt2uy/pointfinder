@@ -6,8 +6,8 @@ def index():
     return render_template('working_ajax.html')
 
 
-@app.route('/add', methods=['POST'])
-def add():
+@app.route('/', methods=['POST'])
+def receive_file():
     a = request.form.get('a', 0, type=float)
     b = request.form.get('b', 0, type=float)
     print(a+b)

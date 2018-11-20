@@ -35,7 +35,7 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 		video_clips[i]["translate_x"] = -video_clips[i]["translate_x"]
 		# reframing involves exporting a new file (differentiated with a '_reframed' suffix)
 		print("\n\n\n\n\n"+"translate_x"+str(video_clips[i]["translate_x"])+"\n translate_y"+str(video_clips[i]["translate_y"])+"\n\n\n\n\n")
-		reframe_clip(output_path, output_path[:-4]+"_reframed"+output_path[-4:], video_clips[i]["scale_factor"], video_clips[i]["degrees_cw"], video_clips[i]["translate_x"], video_clips[i]["translate_y"])
+		reframe_clip(output_path, output_path[:-4]+"_reframed"+output_path[-4:], video_clips[i]["scale_factor"]*1.1, video_clips[i]["degrees_cw"], video_clips[i]["translate_x"]+20, video_clips[i]["translate_y"]+20)
 		
 		video_clip_paths.append(output_path[:-4]+"_reframed"+output_path[-4:])
 
@@ -69,8 +69,8 @@ def join_video(video_clip_paths):
 	# for testing the reframes!
 	#subprocess.call('ffplay sample_video_files/output.mp4')
 	# delete the 'intermediate' files
-	delete_files(video_clip_paths)
-	delete_files(["sample_video_files\\clip_list.txt"])
+	#delete_files(video_clip_paths)
+	#delete_files(["sample_video_files\\clip_list.txt"])
 
 def reframe_clip(source_path, output_path, scale_factor, degrees_cw, translate_x, translate_y):
 

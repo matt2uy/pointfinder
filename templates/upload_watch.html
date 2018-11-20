@@ -73,6 +73,8 @@
 
 <body>
 
+
+<form action="{{ url_for('edit_video') }}" method=post class=add-entry>
 	<!--  width="100%" height="100%" position="absolute" left="0" top="0" -->
 		<canvas class="canvas" id="canvas1_baseui"></canvas>
 		<canvas class="canvas" id="canvas2_video"></canvas>
@@ -98,6 +100,7 @@
 				<div class="col-md-2">						
 					<br></br>
 					<input multiple id="choose_file" type="file" accept="video/*"/>
+
 					<font size="1">
 						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
 						<input type="text" name="export_type" id="export_type" class="form-control" placeholder="Export type">
@@ -410,7 +413,7 @@
 	*/
 
 
-	///////// I guess this function runs the file(s) that were inputed by the user? ////////////
+	///////// I guess this function runs the file(s) that were inputted by the user? ////////////
 
 	
 

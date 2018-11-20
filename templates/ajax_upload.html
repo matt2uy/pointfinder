@@ -1,7 +1,7 @@
 <!doctype html>
 <title>Upload new File</title>
 
-    <form id='user_selection' method=post enctype=multipart/form-data>
+    <form id='user_selection'>
         <input type=file name=file multiple>
         <input type="submit" value="Upload">
     </form>
@@ -11,15 +11,16 @@
 
 {% block script %}
   <script>
+
     function send_file(ev) {
       ev.preventDefault();
       var request = new XMLHttpRequest();
-      request.open('POST', {{ url_for('receive_file') }});
+      request.open('POST', "{{ url_for('receive_file') }}");
       request.send(new FormData(this));
     }
     var form = document.getElementById('user_selection');
-    //form.addEventListener('submit', send_file);
+    form.addEventListener('submit', send_file);
     // send data when the input changes.
-    form.addEventListener("input", send_file);
+    //form.addEventListener("input", send_file);
   </script>
 {% endblock %}

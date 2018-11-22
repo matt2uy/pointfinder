@@ -1,0 +1,27 @@
+<!doctype html>
+<title>JavaScript Example</title>
+
+
+<hr>
+<form id="calc">
+  <label>a <input name="a"></label>
+  <span>+</span>
+  <label>b <input name="b"></label>
+  <input type="submit" value="Calculate">
+</form>
+<span>= <span id="result"></span></span>
+
+{% block script %}
+  <script>
+    function send_file(ev) {
+      ev.preventDefault();
+      var request = new XMLHttpRequest();
+      request.open('POST', {{ url_for('receive_file')|tojson }});
+      request.send(new FormData(this));
+    }
+    var form = document.getElementById('calc');
+    //form.addEventListener('submit', send_file);
+    // send data when the input changes.
+    form.addEventListener("input", send_file);
+  </script>
+{% endblock %}

@@ -110,40 +110,12 @@
 
 
 
-{% block script %}
-  <script>
+<div class="progress">
 
-// progress on transfers from the server to the client (downloads)
-function updateProgress (oEvent) {
-  if (oEvent.lengthComputable) {
-    var percentComplete = oEvent.loaded / oEvent.total * 100;
-    // ...
-    console.log(percentComplete);
-  } else {
-    // Unable to compute progress information since the total size is unknown
-  }
-}
+				<br></br>
 
-    function send_file(ev) {
-      ev.preventDefault();
-      var request = new XMLHttpRequest();
-
-      // get the upload progress
-      request.addEventListener("progress", updateProgress);
-      request.addEventListener("load", console.log("The transfer is complete."));
-
-      request.open('POST', "{{ url_for('receive_file') }}");
-      request.send(new FormData(this));
-    }
-    var form = document.getElementById('user_selection');
-    form.addEventListener('submit', send_file);
-
-    // send data when the input changes.
-    //form.addEventListener("input", send_file);
-  </script>
-{% endblock %}
-
-
+				<div class="progress-bar" id="upload_progress_bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+				</div>
 					<button type="button" class="btn btn-secondary" onclick="skip_to_start();">Import Files</button>
 
 					<br></br>
@@ -180,7 +152,6 @@ function updateProgress (oEvent) {
 
 				<div class="col-md-8">
 					<div class="form group">
-
 
 						<!-- Could be the scoreboard? -->
 							<!-- <div class="overlay">
@@ -280,6 +251,46 @@ function updateProgress (oEvent) {
 
 </body>
 
+
+<!-- File upload (in the background) -->
+
+{% block script %}
+  <script>
+
+  	// update the "upload_progress_bar" <div>
+	function updateProgress (oEvent) {
+		if (oEvent.lengthComputable) {
+			var percentComplete = Math.round(oEvent.loaded / oEvent.total * 100);
+	 		// ...
+			document.getElementById("upload_progress_bar").style.width=percentComplete+"%";
+			document.getElementById("upload_progress_bar").innerHTML=percentComplete+"%";
+			
+		} else {
+	    // Unable to compute progress information since the total size is unknown
+	  }
+	}
+
+	// upload the selected file(s) from the client to the server in the background.
+    function send_file(ev) {
+    	ev.preventDefault();
+    	var request = new XMLHttpRequest();
+
+		request.open('POST', "{{ url_for('receive_file') }}");
+
+		// get upload progress.
+		request.upload.onprogress = function(e) {
+		    updateProgress(e); // readyState will be 3
+		};
+
+	    request.send(new FormData(this));
+    }
+    var form = document.getElementById('user_selection');
+    form.addEventListener('submit', send_file);
+
+    // send data when the input changes.
+    //form.addEventListener("input", send_file);
+  </script>
+{% endblock %}
 
 
 <!-- keyboard events -->

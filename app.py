@@ -56,34 +56,34 @@ def allowed_file(filename):
 def home():
 	return render_template('watch.html')
 	
-# @app.route('/edit_video', methods=['POST'])
-# def edit_video(): #change to 'watch'
+@app.route('/edit_video', methods=['POST'])
+def edit_video(): #change to 'watch'
 
-# 	# get the video export data from the client.
-# 	stringified_array = request.form['export_data'] # seems like we are just getting a string, not json.
-# 	##### parse the json...
+	# get the video export data from the client.
+	stringified_array = request.form['export_data'] # seems like we are just getting a string, not json.
+	##### parse the json...
 
-# 	# convert the stringified list into an actual list
-# 	stringified_list = json.loads(stringified_array)
+	# convert the stringified list into an actual list
+	stringified_list = json.loads(stringified_array)
 
-# 	# save the clips in a list of dicts
-# 	video_clips = []
+	# save the clips in a list of dicts
+	video_clips = []
 
-# 	for stringified_dict in stringified_list:
-# 		video_clips.append(stringified_dict)
-
-
-# 	#####
-
-# 	print('exporting video...')
-
-# 	# process the video
-# 	video_export.export(video_clips)
-
-# 	print('finished export.')
+	for stringified_dict in stringified_list:
+		video_clips.append(stringified_dict)
 
 
-# 	return render_template('watch.html')
+	#####
+
+	print('exporting video...')
+
+	# process the video
+	video_export.export(video_clips)
+
+	print('finished export.')
+
+
+	return render_template('watch.html')
 
 
 @app.route('/', methods=['POST'])

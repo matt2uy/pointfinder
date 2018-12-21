@@ -65,6 +65,11 @@ def join_video(video_clip_paths):
 	# concatenate all videos in clip_list.txt
 	subprocess.call('ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files\\'+output_name)
 	
+	''' for copy and pasters (instructions for cmd interface):
+	ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files/ooot.mp4
+	clip_list.txt:
+	file 'filename.mp4'
+	'''
 
 	# for testing the reframes!
 	#subprocess.call('ffplay sample_video_files/output.mp4')

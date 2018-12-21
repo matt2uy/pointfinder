@@ -52,7 +52,7 @@ def join_video(video_clip_paths):
 	subprocess.call('ffmpeg -safe 0 -f concat -i sample_video_files/clip_list.txt -c copy sample_video_files\\'+output_name)
 	
 	# delete the 'intermediate' files
-	delete_files(video_clip_paths)
+	#delete_files(video_clip_paths)
 	#delete_files(["sample_video_files\\clip_list.txt"])
 
 def delete_files(list_of_files):

@@ -58,6 +58,7 @@ def join_video(video_clip_paths):
 	clip_list_file.close() # remember to close the file!
 
 
+	# Append a timestamp to the output filename.
 	import datetime
 	output_name = "out"+str(datetime.datetime.now().strftime("%m-%d-%y[%H-%M-%S]"))+".mp4"
 	

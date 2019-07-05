@@ -14,8 +14,6 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 		### 1. Assemble the source and output paths.
 		source_path = source_folder + str(video_clips[i]["filename"])
 		output_path = output_folder + "trimmed"+str(i)+".mp4"
-		
-
 
 		### 2. trim and export the clip 
 
@@ -24,8 +22,6 @@ def split_video(video_clips, source_folder, output_folder): # add parameter: spe
 		
 		# Fast export (inaccurate cuts, random jumping) 
 		#subprocess.call('ffmpeg -i ' + source_path + ' -ss ' + str(video_clips[i]["start_time"]) + ' -to ' + str(video_clips[i]["end_time"]) + ' -c copy ' + output_path)
-
-
 
 		### 3. "reframe" the clip.
 		# Tweak 'reframe' attributes (should we do these calculations from the client side?)

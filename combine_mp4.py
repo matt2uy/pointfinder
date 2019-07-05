@@ -4,8 +4,9 @@ import subprocess
 import os
 
 def join_video(video_clip_paths):
-	### Concatenate video clips
+	### Concatenate video clips from the list 'video_clip_paths'
 
+	# Use an intermediary file (clip_list.txt) to store 'video_clip_paths'
 	# add file paths to clip_list.txt in chronological order.
 	clip_list_file = open("sample_video_files\\clip_list.txt","w+")
 

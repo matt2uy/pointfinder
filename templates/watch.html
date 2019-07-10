@@ -106,11 +106,11 @@
 						<input multiple type="file" name="file" accept="video/*"/>
         				<input type="submit" value="Open Project">
 					</form>				
+				
 
-					<form id='file_selection'>
-						<input multiple type="file" name="file" accept="video/*"/>
-        				<input type="submit" value="Save Project">
-					</form>					
+					<!-- Save project file to client's machine. -->
+					<button onclick="save_project_locally()">Save Project</button> 
+
 
 					<font size="1">
 						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
@@ -652,7 +652,6 @@
 		play_edit();
 	}
 
-
 	function skip_to_next_timestamp() {
 
 		// pause video when skipping back and forth.
@@ -702,7 +701,6 @@
 		play_edit();
 	}
 
-
 	function frame_step_forward() {
 		UserVideo.currentTime += frame_length;
 		pause_video();
@@ -718,7 +716,6 @@
 	function set_export_type(export_type) {
 		export_setting = export_type;
 	}
-
 	
 
 	// I guess there's no toggle available yet?
@@ -1374,6 +1371,30 @@
 	// }
 
 
+
+	///// Save project file /////
+	var data = [
+	   ['Foo', 'programmer'],
+	   ['Bar', 'bus driver'],
+	   ['Moo', 'Reindeer Hunter']
+	];
+	 
+	 
+	function save_project_locally() {
+	    var csv = JSON.stringify(video_clips);
+;
+	    // var csv = 'Name,Title\n';
+	    // data.forEach(function(row) {
+	    //         csv += row.join(',');
+	    //         csv += "\n";
+	    // });
+	 
+	    var hiddenElement = document.createElement('a');
+	    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+	    hiddenElement.target = '_blank';
+	    hiddenElement.download = 'project_file.txt';
+	    hiddenElement.click();
+	}
 
 
 

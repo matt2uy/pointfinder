@@ -102,15 +102,15 @@
         				<input type="submit" value="Upload">
 					</form>	
 
-					<form id='file_selection'>
-						<input multiple type="file" name="file" accept="video/*"/>
-        				<input type="submit" value="Open Project">
-					</form>				
-				
-
 					<!-- Save project file to client's machine. -->
 					<button onclick="save_project_locally()">Save Project</button> 
 
+					<br></br>
+
+					<!-- Open project file from client's machine. -->
+					Open Project:
+					<input type="file" id="open_project_input" name="file" accept=".txt"/>
+		
 
 					<font size="1">
 						<input type="text" name="export_data" id="export_data" class="form-control" placeholder="Video clip data">
@@ -1373,16 +1373,9 @@
 
 
 	///// Save project file /////
-	var data = [
-	   ['Foo', 'programmer'],
-	   ['Bar', 'bus driver'],
-	   ['Moo', 'Reindeer Hunter']
-	];
-	 
 	 
 	function save_project_locally() {
 	    var csv = JSON.stringify(video_clips);
-;
 	    // var csv = 'Name,Title\n';
 	    // data.forEach(function(row) {
 	    //         csv += row.join(',');
@@ -1395,6 +1388,26 @@
 	    hiddenElement.download = 'project_file.txt';
 	    hiddenElement.click();
 	}
+
+	///// Open project file /////
+	// instead of using 'onclick', use an event?
+	function open_project(evt) {
+	  var files = evt.target.files,
+	      reader = new FileReader();
+	    reader.onload = function() {
+	        showout.value = this.result;
+	  // update the 'export data' (the project file stored in the .js/browser.)
+	  video_clips = showout.value;
+
+	    };
+	    reader.readAsText(files[0]);
+	}
+	    
+	var openbtn = document.getElementById("open_project_input"),
+	    showout = document.getElementById("export_data");
+
+	open_project_input.addEventListener("change", open_project, false);
+
 
 
 

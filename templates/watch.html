@@ -108,8 +108,13 @@
 					<br></br>
 
 					<!-- Open project file from client's machine. -->
-					Open Project:
-					<input type="file" id="open_project_input" name="file" accept=".txt"/>
+					<button style="display:block;width:120px; height:30px;" onclick="document.getElementById('open_project_input').click()">Open Project</button>
+
+					<!-- Changing default "file selector" button text: https://stackoverflow.com/questions/5138719/change-default-text-in-input-type-file-->
+
+					<input type="file" id="open_project_input" name="file" accept=".txt"/ style="display:none">
+
+					<br></br>
 		
 
 					<font size="1">
@@ -117,6 +122,8 @@
 						<input type="text" name="export_type" id="export_type" class="form-control" placeholder="Export type">
 						<div id="message"></div>
 					</font>
+
+
 
 
 
@@ -1385,6 +1392,8 @@
 	    var hiddenElement = document.createElement('a');
 	    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
 	    hiddenElement.target = '_blank';
+	    // note: add the actual project file name later.
+	    // --> video_clips['project_name']
 	    hiddenElement.download = 'project_file.txt';
 	    hiddenElement.click();
 	}
@@ -1397,7 +1406,7 @@
 	    reader.onload = function() {
 	        showout.value = this.result;
 	  // update the 'export data' (the project file stored in the .js/browser.)
-	  video_clips = showout.value;
+	  video_clips = JSON.parse(showout.value); // convert the string back to json as well.
 
 	    };
 	    reader.readAsText(files[0]);

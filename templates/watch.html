@@ -1210,24 +1210,24 @@
 			if (point_index === 0) {
 				// 0. If we are before the first clip, go to the beginning of the first clip.
 				if (UserVideo.currentTime < video_clips[0].start_time) {
-					console.log("0. If we are before the first clip, go to the beginning of the first clip.");
+					//console.log("0. If we are before the first clip, go to the beginning of the first clip.");
 					UserVideo.currentTime = video_clips[0].start_time;
 				}
 			}
 			// 1. If we are after the last point and before the current point -> go to the start of the current point.
 			else if (video_clips[point_index-1].end_time < UserVideo.currentTime && UserVideo.currentTime < video_clips[point_index].start_time) {
-				console.log("1. If we are after the last point and before the current point -> go to the start of the current point.");
+				//console.log("1. If we are after the last point and before the current point -> go to the start of the current point.");
 				UserVideo.currentTime = video_clips[point_index].start_time;
 			}
 
 
-			// 2. Between Points -> go to the start of the next point.
-			else if (video_clips.length > 2) {
-				if (video_clips[point_index].end_time < UserVideo.currentTime && UserVideo.currentTime < video_clips[point_index+1].start_time) {
-					console.log("2. Between Points -> go to the start of the next point.");
-					UserVideo.currentTime = video_clips[point_index+1].start_time;
-				}
-			}
+			// 2. after current point and before next point -> go to the start of the next point.
+			// else if (video_clips.length > 2) {
+			// 	if (video_clips[point_index].end_time < UserVideo.currentTime && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+			// 		//console.log("2. Between Points -> go to the start of the next point.");
+			// 		UserVideo.currentTime = video_clips[point_index+1].start_time;
+			// 	}
+			// }
 			
 
 			// 3. Past all 'video_clips' -> do nothing.
@@ -1384,6 +1384,8 @@
 	        showout.value = this.result;
 	  // update the 'export data' (the project file stored in the .js/browser.)
 	  video_clips = JSON.parse(showout.value); // convert the string back to json as well.
+	  // update the video file being used.
+	  //UserVideo = video_clips[0]["filename"];
 
 	    };
 	    reader.readAsText(files[0]);

@@ -1202,32 +1202,35 @@
 
 		// must ensure that the values in "video_clips" are strictly increasing.
 		// if the currentTime is "in between" points (aka timestamp[x][0] and timestamp[x][1]) then set currentTime to the next timestamp (so there is seamless playback of the edited match play.)
-		// check each point in 'video_clips'
-		for (var point_index = 0; point_index < video_clips.length-1; point_index++) {
+		// traverse each point in 'video_clips'
+		for (var point_index = 0; point_index < video_clips.length; point_index++) {
 
 			// 0. Special case for first point (don't look at point_index-1 for now)
-			if (point_index === 0) {
-				if (UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
 
-					UserVideo.currentTime = video_clips[point_index].start_time;
+			if (point_index === 0) {
+				// 0. If we are before the first clip, go to the beginning of the first clip.
+				if (UserVideo.currentTime < video_clips[0].start_time) {
+					console.log("0. If we are before the first clip, go to the beginning of the first clip.");
+					UserVideo.currentTime = video_clips[0].start_time;
 				}
 			}
-			// 1. if we are -> go to the start of the current point.
-			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime < video_clips[point_index].start_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+			// 1. If we are after the last point and before the current point -> go to the start of the current point.
+			else if (video_clips[point_index-1].end_time < UserVideo.currentTime && UserVideo.currentTime < video_clips[point_index].start_time) {
+				console.log("1. If we are after the last point and before the current point -> go to the start of the current point.");
 				UserVideo.currentTime = video_clips[point_index].start_time;
 			}
 
-			// 2. Before the 'first' point -> go to the start of the first point.
-			else if (UserVideo.currentTime < video_clips[0].start_time) {
-				UserVideo.currentTime = video_clips[0].start_time;
-			}
 
-			// 3. Between Points -> go to the start of the next point.
-			else if (UserVideo.currentTime > video_clips[point_index-1].end_time && UserVideo.currentTime >= video_clips[point_index].end_time && UserVideo.currentTime < video_clips[point_index+1].start_time) {
-				UserVideo.currentTime = video_clips[point_index+1].start_time;
+			// 2. Between Points -> go to the start of the next point.
+			else if (video_clips.length > 2) {
+				if (video_clips[point_index].end_time < UserVideo.currentTime && UserVideo.currentTime < video_clips[point_index+1].start_time) {
+					console.log("2. Between Points -> go to the start of the next point.");
+					UserVideo.currentTime = video_clips[point_index+1].start_time;
+				}
 			}
+			
 
-			// 4. Past all 'video_clips' -> do nothing.
+			// 3. Past all 'video_clips' -> do nothing.
 
 			// 5. Pause (or maybe loop?) after last point in the video. (only if user is "finished" editing.)
 			/*if (UserVideo.currentTime > video_clips[video_clips.length-1][1]) {
@@ -1237,32 +1240,6 @@
 
 
 
-		// // check a special case:
-		// // if the first point hasn't started -> go to the start of the first point
-		// if (UserVideo.currentTime < video_clips[1][0]) {
-		// 	UserVideo.currentTime = video_clips[1][0];
-		// }
-
-		// // check the rest of the points in 'video_clips'.
-		// else {
-		// 	found_current_time = false;
-		// 	point_index = 1;
-
-		// 	while (found_current_time === false) {				
-		// 		// if we are ["inside") a point -> go to the start of the next point.
-		// 		if (UserVideo.currentTime > video_clips[point_index][1] && UserVideo.currentTime < video_clips[point_index+1][0]) {
-		// 			found_current_time = true;
-		// 			UserVideo.currentTime = video_clips[point_index + 1][0];
-		// 		}
-
-		// 		// keeping looking? (at the next point)
-		// 		point_index += 1;
-
-		// 		if (point_index >= video_clips.length-1) {
-		// 			found_current_time = true;
-		// 		}
-		// 	}
-		// }
 	}
 
 

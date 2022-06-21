@@ -3,6 +3,6 @@ gunicorn==19.9.0
 itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
-numpy==1.13.3
+numpy==1.22.0
 opencv-python-headless
 Werkzeug==0.14.1
